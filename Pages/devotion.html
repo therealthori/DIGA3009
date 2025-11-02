@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devotion - SELAH</title>
+    <link rel="stylesheet" href="devotion-styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">SELAH</div>
+            <ul class="nav-menu">
+                <li><a href="index.html">HOME</a></li>
+                <li><a href="devotion.html" class="active">DEVOTION</a></li>
+                <li><a href="prayer.html">PRAYER</a></li>
+                <li><a href="#journal">JOURNAL</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="devotion-main">
+        <div class="devotion-container">
+            <!-- Header -->
+            <header class="devotion-header">
+                <h1 class="devotion-title">Devotion</h1>
+                <p class="devotion-subtitle">Have not read your bible, come engage in the Word of God.</p>
+                <button class="generate-btn" id="generateBtn">
+                    <span id="btnText">Generate Devotion</span>
+                    <span class="loader" id="loader"></span>
+                </button>
+            </header>
+
+            <!-- Verse Card -->
+            <section class="verse-card">
+                <!-- Bible Icon -->
+                <div class="bible-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="#0ea5e9">
+                        <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 4h2v5l-1-.75L9 9V4zm9 16H6V4h1v9l3-2.25L13 13V4h5v16z"/>
+                    </svg>
+                </div>
+
+                <!-- Verse Content -->
+                <div class="verse-content">
+                    <p class="verse-label">VERSE OF THE DAY:</p>
+                    <h2 class="verse-reference" id="verseReference">John 3:16</h2>
+                    <p class="verse-text" id="verseText">
+                        For God loved the world so much that he gave his only Son, so that everyone who believes in him may not die but have eternal life.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Commentary Section -->
+            <section class="commentary-section">
+                <h3 class="commentary-title">Commentary</h3>
+                <div class="commentary-content" id="commentaryContent">
+                    <p>Click "Generate Devotion" to receive a daily verse and commentary.</p>
+                </div>
+            </section>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="action-btn" id="saveBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+                    </svg>
+                    Save Devotion
+                </button>
+                <button class="action-btn" id="shareBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+                    </svg>
+                    Share
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Footer</p>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <p id="toastMessage">Saved to your devotions!</p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="devotion-script.js"></script>
+</body>
+</html>
