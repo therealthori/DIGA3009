@@ -23,6 +23,7 @@
         </div>
     </nav>
 
+    <!-- Prayer Page Content -->
     <main class="prayer-main">
         <div class="prayer-container">
             <!-- Header -->
@@ -42,23 +43,23 @@
                             type="text" 
                             id="searchInput" 
                             class="search-input" 
-                            placeholder="Search for worship music..."
+                            placeholder="Search for worship music, artists, or playlists..."
                         >
-                        <button class="clear-btn" id="clearBtn" style="display: none;">
+                        <button type="button" class="clear-btn" id="clearBtn" style="display: none;">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
                             </svg>
                         </button>
                     </div>
-                    <button class="search-btn" id="searchBtn">Search</button>
+                    <button type="button" class="search-btn" id="searchBtn">Search</button>
                 </div>
 
                 <!-- Filter Options -->
                 <div class="filter-options">
-                    <button class="filter-btn active" data-filter="all">All</button>
-                    <button class="filter-btn" data-filter="video">Videos</button>
-                    <button class="filter-btn" data-filter="playlist">Playlists</button>
-                    <button class="filter-btn" data-filter="channel">Channels</button>
+                    <button type="button" class="filter-btn active" data-filter="all">All</button>
+                    <button type="button" class="filter-btn" data-filter="video">Videos</button>
+                    <button type="button" class="filter-btn" data-filter="playlist">Playlists</button>
+                    <button type="button" class="filter-btn" data-filter="channel">Channels</button>
                 </div>
 
                 <!-- Search Results Counter -->
@@ -72,15 +73,17 @@
                 <div class="timer-display">
                     <span id="minutes">00</span>:<span id="seconds">00</span>
                 </div>
-                <button class="set-time-btn" id="setTimeBtn">Set Time</button>
+                <button type="button" class="set-time-btn" id="setTimeBtn">Set Time</button>
             </section>
 
             <!-- Music Player Section -->
             <section class="music-player">
-                <div class="player-card">
-                    <div class="album-art" id="albumArt">
-                        <img src="https://via.placeholder.com/200" alt="Video thumbnail" id="albumImage">
+                <div class="player-card" style="grid-template-columns: 1fr;">
+                    <!-- YouTube Video Player (visible) -->
+                    <div class="video-player-container" style="width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 1.5rem;">
+                        <div id="youtube-player"></div>
                     </div>
+                    
                     <div class="track-info">
                         <h2 class="track-title" id="trackTitle">Worship Music</h2>
                         <p class="artist-name" id="artistName">Click play to begin worship</p>
@@ -120,10 +123,10 @@
                     </div>
                 </div>
 
-                <!-- Playlist -->
+                <!-- Search Results / Playlist -->
                 <div class="playlist" id="playlistContainer">
                     <div class="playlist-header">
-                        <h3 id="playlistTitle">Worship Playlist</h3>
+                        <h3 id="playlistTitle">Gospel Music Playlist</h3>
                         <span class="loading-spinner" id="loadingSpinner" style="display: none;"></span>
                     </div>
                     <div class="playlist-items" id="playlistItems">
@@ -159,18 +162,15 @@
                 </div>
             </div>
             <div class="modal-buttons">
-                <button class="modal-btn cancel-btn" id="cancelBtn">Cancel</button>
-                <button class="modal-btn confirm-btn" id="confirmBtn">Start</button>
+                <button type="button" class="modal-btn cancel-btn" id="cancelBtn">Cancel</button>
+                <button type="button" class="modal-btn confirm-btn" id="confirmBtn">Start</button>
             </div>
         </div>
     </div>
 
-    <!-- YouTube Player (hidden) -->
-    <div id="youtube-player"></div>
-    
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://w.soundcloud.com/player/api.js"></script>
+    <!-- <script src="https://w.soundcloud.com/player/api.js"></script> -->
     <script src="../JavaScript/music.js"></script>
 </body>
 </html>

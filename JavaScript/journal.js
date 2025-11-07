@@ -72,7 +72,6 @@ function initializePage() {
 
 // Load Psalms List (All 150 Psalms)
 function loadPsalmsList() {
-    // Generate all 150 Psalms
     for (let i = 1; i <= 150; i++) {
         const option = document.createElement('option');
         option.value = `Psalms ${i}`;
@@ -87,9 +86,7 @@ function loadPsalmsList() {
 // Fetch from bible-api.com
 async function fetchPsalm(psalmReference) {
     try {
-        // Format: "Psalms 23" or "Psalms 23:1-6" 
         const url = `${CONFIG.BIBLE_API_URL}/${encodeURIComponent(psalmReference)}`;
-        
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -116,23 +113,19 @@ async function loadChapter(psalmReference) {
             throw new Error('No psalm data returned');
         }
         
-        // Format the psalm text
         const reference = data.reference || psalmReference;
         const verses = data.verses || [];
         
-        // Build formatted text with verse numbers
         let formattedText = '';
         if (verses.length > 0) {
             formattedText = verses.map(verse => {
                 return `<p><strong>${verse.verse}</strong> ${verse.text}</p>`;
             }).join('');
         } else {
-            // Fallback to plain text
             formattedText = `<p>${data.text}</p>`;
         }
         
         displayPsalm(reference, formattedText, psalmReference);
-        
         showToast('Psalm loaded successfully!');
         
     } catch (error) {
@@ -149,6 +142,9 @@ async function loadChapter(psalmReference) {
 
 // Display Psalm helper
 function displayPsalm(reference, content, psalmId) {
+    console.log('Displaying psalm:', reference); 
+    console.log('Content length:', content.length); 
+
     psalmDisplay.innerHTML = `
         <div class="verse-content">
             <div class="verse-label">Scripture</div>
@@ -163,34 +159,32 @@ function displayPsalm(reference, content, psalmId) {
         content: content
     };
     
-    gsap.from('.verse-content', {
-        opacity: 0,
-        y: 20,
-        duration: 0.5,
-        ease: 'power2.out'
-    });
-    
     psalmDisplay.classList.remove('loading');
 }
 
-// Load Psalm Button Click
-loadPsalmBtn.addEventListener('click', async (e) => {
-    e.preventDefault(); // Prevent any default behavior
-    e.stopPropagation(); // Stop event bubbling
-    
-    const psalmReference = psalmSelect.value;
-    
-    if (!psalmReference) {
-        gsap.to('.psalm-select', {
-            x: [-10, 10, -10, 10, 0],
-            duration: 0.4
-        });
-        showToast('Please select a Psalm first');
-        return;
-    }
-    
-    await loadChapter(psalmReference);
-});
+// Load Psalm Button Click - FIXED VERSION
+if (loadPsalmBtn) {
+    loadPsalmBtn.addEventListener('click', async function(e) {
+        // CRITICAL: Stop all default behaviors
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        
+        const psalmReference = psalmSelect.value;
+        
+        if (!psalmReference) {
+            gsap.to('.psalm-select', {
+                x: [-10, 10, -10, 10, 0],
+                duration: 0.4
+            });
+            showToast('Please select a Psalm first');
+            return false; // Extra safety
+        }
+        
+        await loadChapter(psalmReference);
+        return false; // Extra safety
+    });
+}
 
 // LocalStorage Helpers
 function loadSavedNotes() {
@@ -236,12 +230,10 @@ function renderNotes() {
     let hasPrayers = false;
 
     notes.forEach((note, index) => {
-        // Add to Notes column
         const noteEl = createNoteElement(note, index);
         notesList.appendChild(noteEl);
         hasNotes = true;
 
-        // Add to Prayers column if it's a prayer or favorite
         if (note.isPrayer || note.isFavorite) {
             const prayerEl = createPrayerElement(note);
             prayersList.appendChild(prayerEl);
@@ -250,22 +242,13 @@ function renderNotes() {
     });
 
     if (!hasNotes) {
-        notesList.innerHTML = `
-            <div class="empty-state">
-                <p>No notes yet.</p>
-            </div>
-        `;
+        notesList.innerHTML = `<div class="empty-state"><p>No notes yet.</p></div>`;
     }
 
     if (!hasPrayers) {
-        prayersList.innerHTML = `
-            <div class="empty-state">
-                <p>No prayers or favorites yet.</p>
-            </div>
-        `;
+        prayersList.innerHTML = `<div class="empty-state"><p>No prayers or favorites yet.</p></div>`;
     }
 
-    // Animate new items
     gsap.from('.item, .prayer-item', {
         duration: 0.5,
         y: 20,
@@ -312,110 +295,116 @@ function createPrayerElement(note) {
     return div;
 }
 
-// Save Entry Button Click
-saveBtn.addEventListener('click', (e) => {
-    e.preventDefault(); // Prevent any default behavior
-    e.stopPropagation(); // Stop event bubbling
-    
-    const text = journalInput.value.trim();
-    
-    if (!text) {
-        gsap.to('.journal-textarea', {
-            x: [-8, 8, -8, 8, 0],
-            duration: 0.4
+// Save Entry Button Click - FIXED VERSION
+if (saveBtn) {
+    saveBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        
+        const text = journalInput.value.trim();
+        
+        if (!text) {
+            gsap.to('.journal-textarea', {
+                x: [-8, 8, -8, 8, 0],
+                duration: 0.4
+            });
+            showToast('Please write something first');
+            return false;
+        }
+
+        const selectedOption = psalmSelect.selectedOptions[0];
+        const psalmRef = selectedOption ? selectedOption.textContent : null;
+        const isPrayer = saveAsPrayerCheckbox.checked;
+
+        const entry = {
+            text: text,
+            psalmId: selectedOption ? selectedOption.value : null,
+            psalmRef: psalmRef,
+            date: new Date().toLocaleString(),
+            isPrayer: isPrayer,
+            isFavorite: false
+        };
+
+        const notes = loadSavedNotes();
+        notes.unshift(entry);
+        saveNotes(notes);
+        renderNotes();
+
+        journalInput.value = '';
+        saveAsPrayerCheckbox.checked = false;
+        
+        gsap.to('.save-btn', {
+            scale: 0.95,
+            duration: 0.1,
+            yoyo: true,
+            repeat: 1
         });
-        showToast('Please write something first');
-        return;
-    }
-
-    const selectedOption = psalmSelect.selectedOptions[0];
-    const psalmRef = selectedOption ? selectedOption.textContent : null;
-    const isPrayer = saveAsPrayerCheckbox.checked;
-
-    const entry = {
-        text: text,
-        psalmId: selectedOption ? selectedOption.value : null,
-        psalmRef: psalmRef,
-        date: new Date().toLocaleString(),
-        isPrayer: isPrayer,
-        isFavorite: false
-    };
-
-    const notes = loadSavedNotes();
-    notes.unshift(entry);
-    saveNotes(notes);
-    renderNotes();
-
-    // Clear and provide feedback
-    journalInput.value = '';
-    saveAsPrayerCheckbox.checked = false;
-    
-    gsap.to('.save-btn', {
-        scale: 0.95,
-        duration: 0.1,
-        yoyo: true,
-        repeat: 1
+        
+        showToast(isPrayer ? 'Prayer saved!' : 'Entry saved!');
+        return false;
     });
-    
-    showToast(isPrayer ? 'Prayer saved!' : 'Entry saved!');
-});
+}
 
-// Favorite Psalm Button Click
-favoritePsalmBtn.addEventListener('click', (e) => {
-    e.preventDefault(); // Prevent any default behavior
-    e.stopPropagation(); // Stop event bubbling
-    
-    const selectedOption = psalmSelect.selectedOptions[0];
-    
-    if (!selectedOption) {
-        gsap.to('.psalm-select', {
-            x: [-8, 8, -8, 8, 0],
-            duration: 0.4
+// Favorite Psalm Button Click - FIXED VERSION
+if (favoritePsalmBtn) {
+    favoritePsalmBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        
+        const selectedOption = psalmSelect.selectedOptions[0];
+        
+        if (!selectedOption) {
+            gsap.to('.psalm-select', {
+                x: [-8, 8, -8, 8, 0],
+                duration: 0.4
+            });
+            showToast('Please select a Psalm first');
+            return false;
+        }
+        
+        if (!currentPsalm) {
+            showToast('Please load the Psalm first');
+            return false;
+        }
+
+        const psalmRef = selectedOption.textContent;
+        const notes = loadSavedNotes();
+        
+        const alreadyFavorited = notes.some(note => 
+            note.psalmId === selectedOption.value && note.isFavorite
+        );
+        
+        if (alreadyFavorited) {
+            showToast('This Psalm is already in your favorites');
+            return false;
+        }
+
+        const entry = {
+            text: `Favorite Psalm — ${psalmRef}`,
+            psalmId: selectedOption.value,
+            psalmRef: psalmRef,
+            date: new Date().toLocaleString(),
+            isPrayer: false,
+            isFavorite: true
+        };
+        
+        notes.unshift(entry);
+        saveNotes(notes);
+        renderNotes();
+        
+        gsap.to('.favorite-btn', {
+            scale: 0.9,
+            duration: 0.15,
+            yoyo: true,
+            repeat: 1
         });
-        showToast('Please select a Psalm first');
-        return;
-    }
-    
-    if (!currentPsalm) {
-        showToast('Please load the Psalm first');
-        return;
-    }
-
-    const psalmRef = selectedOption.textContent;
-    const notes = loadSavedNotes();
-    
-    // Check if already favorited
-    const alreadyFavorited = notes.some(note => 
-        note.psalmId === selectedOption.value && note.isFavorite
-    );
-    
-    if (alreadyFavorited) {
-        showToast('This Psalm is already in your favorites');
-        return;
-    }
-
-    const entry = {
-        text: `Favorite Psalm — ${psalmRef}`,
-        psalmId: selectedOption.value,
-        psalmRef: psalmRef,
-        date: new Date().toLocaleString(),
-        isPrayer: false,
-        isFavorite: true
-    };
-    
-    notes.unshift(entry);
-    saveNotes(notes);
-    renderNotes();
-    
-    gsap.to('.favorite-btn', {
-        scale: 0.9,
-        duration: 0.15,
-        yoyo: true,
-        repeat: 1
+        
+        showToast('Added to favorites!');
+        return false;
     });
-    
-    showToast('Added to favorites!');
-});
+}
 
 // Escape HTML Helper
 function escapeHtml(unsafe) {
@@ -430,6 +419,8 @@ function escapeHtml(unsafe) {
 
 // Show Toast Notification
 function showToast(message) {
+    if (!toast || !toastMessage) return;
+    
     toastMessage.textContent = message;
     toast.classList.add('show');
     
@@ -439,8 +430,11 @@ function showToast(message) {
 }
 
 // Enter key to save
-journalInput.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.key === 'Enter') {
-        saveBtn.click();
-    }
-});
+if (journalInput) {
+    journalInput.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            saveBtn.click();
+        }
+    });
+}
