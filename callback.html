@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SoundCloud Auth Redirect</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f3f3f3;
+    }
+    #container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 500px;
+      margin: auto;
+      text-align: center;
+      box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+    }
+    code {
+      background: #eee;
+      padding: 6px;
+      display: inline-block;
+      margin-top: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container">
+    <h2>Authorization Code</h2>
+    <p id="message">Checking for code...</p>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+
+    if (code) {
+      // Display code to user
+      document.getElementById("message").innerHTML =
+        `Copy this code and paste it into your cURL request:<br><code>${code}</code>`;
+      
+      // Store in session storage for later use
+      sessionStorage.setItem("soundcloud_code", code);
+
+      console.log("Authorization Code:", code);
+    } else {
+      document.getElementById("message").textContent =
+        "No authorization code found in the URL.";
+    }
+  </script>
+</body>
+</html>
