@@ -23,7 +23,6 @@
         </div>
     </nav>
 
-    <!-- Prayer Page Content -->
     <main class="prayer-main">
         <div class="prayer-container">
             <!-- Header -->
@@ -43,7 +42,7 @@
                             type="text" 
                             id="searchInput" 
                             class="search-input" 
-                            placeholder="Search for worship music, artists, or playlists..."
+                            placeholder="Search for worship music..."
                         >
                         <button class="clear-btn" id="clearBtn" style="display: none;">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -57,9 +56,9 @@
                 <!-- Filter Options -->
                 <div class="filter-options">
                     <button class="filter-btn active" data-filter="all">All</button>
-                    <button class="filter-btn" data-filter="tracks">Tracks</button>
-                    <button class="filter-btn" data-filter="playlists">Playlists</button>
-                    <button class="filter-btn" data-filter="users">Artists</button>
+                    <button class="filter-btn" data-filter="worship">Worship</button>
+                    <button class="filter-btn" data-filter="prayer">Prayer</button>
+                    <button class="filter-btn" data-filter="instrumental">Instrumental</button>
                 </div>
 
                 <!-- Search Results Counter -->
@@ -80,20 +79,20 @@
             <section class="music-player">
                 <div class="player-card">
                     <div class="album-art" id="albumArt">
-                        <img src="" alt="Album artwork" id="albumImage">
+                        <img src="" alt="Video thumbnail" id="albumImage">
                     </div>
                     <div class="track-info">
-                        <h2 class="track-title" id="trackTitle">Gospel Music Praise & Worship</h2>
+                        <h2 class="track-title" id="trackTitle">Worship Music</h2>
                         <p class="artist-name" id="artistName">Click play to begin worship</p>
                         
                         <!-- Player Controls -->
                         <div class="player-controls">
-                            <button class="control-btn" id="prevBtn">
+                            <button class="control-btn" id="prevBtn" disabled>
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
                                 </svg>
                             </button>
-                            <button class="control-btn play-pause-btn" id="playPauseBtn">
+                            <button class="control-btn play-pause-btn" id="playPauseBtn" disabled>
                                 <svg id="playIcon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M8 5v14l11-7z"/>
                                 </svg>
@@ -101,7 +100,7 @@
                                     <path d="M6 4h4v16H6zm8 0h4v16h-4z"/>
                                 </svg>
                             </button>
-                            <button class="control-btn" id="nextBtn">
+                            <button class="control-btn" id="nextBtn" disabled>
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M16 18h2V6h-2zm-11-7l8.5-6v12z"/>
                                 </svg>
@@ -121,10 +120,10 @@
                     </div>
                 </div>
 
-                <!-- Search Results / Playlist -->
+                <!-- Playlist -->
                 <div class="playlist" id="playlistContainer">
                     <div class="playlist-header">
-                        <h3 id="playlistTitle">Search Results</h3>
+                        <h3 id="playlistTitle">Worship Playlist</h3>
                         <span class="loading-spinner" id="loadingSpinner" style="display: none;"></span>
                     </div>
                     <div class="playlist-items" id="playlistItems">
