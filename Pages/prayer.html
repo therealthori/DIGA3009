@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prayer - SELAH</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../CSS/style.css">
 </head>
 <body>
@@ -12,10 +15,10 @@
         <div class="nav-container">
             <div class="nav-brand">SELAH</div>
             <ul class="nav-menu">
-                <li><a href="index.html">HOME</a></li>
-                <li><a href="#devotion">DEVOTION</a></li>
-                <li><a href="prayer.html" class="active">PRAYER</a></li>
-                <li><a href="#journal">JOURNAL</a></li>
+                <li><a href="../index.html">HOME</a></li>
+                <li><a href="../Pages/devotion.html">DEVOTION</a></li>
+                <li><a href="../Pages/devotion.html" class="active">PRAYER</a></li>
+                <li><a href="../Pages/journal.html">JOURNAL</a></li>
             </ul>
         </div>
     </nav>
@@ -28,6 +31,42 @@
                 <h1 class="prayer-title">Prayer</h1>
                 <p class="prayer-subtitle">Spend time in his presence</p>
             </header>
+
+            <!-- Search Section -->
+            <section class="search-section">
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            class="search-input" 
+                            placeholder="Search for worship music, artists, or playlists..."
+                        >
+                        <button class="clear-btn" id="clearBtn" style="display: none;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <button class="search-btn" id="searchBtn">Search</button>
+                </div>
+
+                <!-- Filter Options -->
+                <div class="filter-options">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="tracks">Tracks</button>
+                    <button class="filter-btn" data-filter="playlists">Playlists</button>
+                    <button class="filter-btn" data-filter="users">Artists</button>
+                </div>
+
+                <!-- Search Results Counter -->
+                <div class="results-info" id="resultsInfo" style="display: none;">
+                    <p id="resultsText">Found 0 results</p>
+                </div>
+            </section>
 
             <!-- Timer Section -->
             <section class="timer-section">
@@ -44,8 +83,8 @@
                         <img src="" alt="Album artwork" id="albumImage">
                     </div>
                     <div class="track-info">
-                        <h2 class="track-title" id="trackTitle">Select a track</h2>
-                        <p class="artist-name" id="artistName">Artist Name</p>
+                        <h2 class="track-title" id="trackTitle">Gospel Music Praise & Worship</h2>
+                        <p class="artist-name" id="artistName">Click play to begin worship</p>
                         
                         <!-- Player Controls -->
                         <div class="player-controls">
@@ -82,11 +121,19 @@
                     </div>
                 </div>
 
-                <!-- Playlist -->
-                <div class="playlist" id="playlist">
-                    <h3>Playlist</h3>
+                <!-- Search Results / Playlist -->
+                <div class="playlist" id="playlistContainer">
+                    <div class="playlist-header">
+                        <h3 id="playlistTitle">Search Results</h3>
+                        <span class="loading-spinner" id="loadingSpinner" style="display: none;"></span>
+                    </div>
                     <div class="playlist-items" id="playlistItems">
-                        <!-- Playlist items will be dynamically added here -->
+                        <div class="empty-state">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
+                                <path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/>
+                            </svg>
+                            <p>Loading worship playlist...</p>
+                        </div>
                     </div>
                 </div>
             </section>

@@ -1,64 +1,209 @@
 // API Configuration
 // Using Bible API for verse retrieval
-const BIBLE_API_KEY = 'Y1JmDWJF22OTcc5bzn2u_H'; // Get from https://scripture.api.bible/
+const BIBLE_API_KEY = '9O1az6HSvI8E34rs5UY3H'; // Get from https://scripture.api.bible/
 const BIBLE_API_URL = 'https://api.scripture.api.bible/v1';
 const BIBLE_ID = 'de4e12af7f28f599-02'; 
 
-// Verse pool for random selection
-const popularVerses = [
-    { reference: 'John 3:16', book: 'John', chapter: 3, verse: 16 },
-    { reference: 'Philippians 4:13', book: 'Philippians', chapter: 4, verse: 13 },
-    { reference: 'Psalm 23:1', book: 'Psalms', chapter: 23, verse: 1 },
-    { reference: 'Romans 8:28', book: 'Romans', chapter: 8, verse: 28 },
-    { reference: 'Proverbs 3:5-6', book: 'Proverbs', chapter: 3, verse: '5-6' },
-    { reference: 'Isaiah 41:10', book: 'Isaiah', chapter: 41, verse: 10 },
-    { reference: 'Jeremiah 29:11', book: 'Jeremiah', chapter: 29, verse: 11 },
-    { reference: 'Matthew 6:33', book: 'Matthew', chapter: 6, verse: 33 },
-    { reference: 'Psalm 46:1', book: 'Psalms', chapter: 46, verse: 1 },
-    { reference: 'Joshua 1:9', book: 'Joshua', chapter: 1, verse: 9 },
-    { reference: '2 Timothy 1:7', book: '2Timothy', chapter: 1, verse: 7 },
-    { reference: 'Romans 12:2', book: 'Romans', chapter: 12, verse: 2 },
-    { reference: '1 Corinthians 13:4-5', book: '1Corinthians', chapter: 13, verse: '4-5' },
-    { reference: 'Galatians 5:22-23', book: 'Galatians', chapter: 5, verse: '22-23' },
-    { reference: 'Ephesians 2:8-9', book: 'Ephesians', chapter: 2, verse: '8-9' }
-];
+const verseDatabase = {
+    'John 3:16': {
+        reference: 'John 3:16',
+        text: 'For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.',
+        theme: 'love',
+        book: 'JHN',
+        chapter: 3,
+        verse: 16
+    },
+    'Philippians 4:13': {
+        reference: 'Philippians 4:13',
+        text: 'I can do all this through him who gives me strength.',
+        theme: 'strength',
+        book: 'PHP',
+        chapter: 4,
+        verse: 13
+    },
+    'Psalm 23:1': {
+        reference: 'Psalm 23:1',
+        text: 'The LORD is my shepherd, I lack nothing.',
+        theme: 'peace',
+        book: 'PSA',
+        chapter: 23,
+        verse: 1
+    },
+    'Romans 8:28': {
+        reference: 'Romans 8:28',
+        text: 'And we know that in all things God works for the good of those who love him, who have been called according to his purpose.',
+        theme: 'purpose',
+        book: 'ROM',
+        chapter: 8,
+        verse: 28
+    },
+    'Proverbs 3:5-6': {
+        reference: 'Proverbs 3:5-6',
+        text: 'Trust in the LORD with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.',
+        theme: 'faith',
+        book: 'PRO',
+        chapter: 3,
+        verse: '5-6'
+    },
+    'Isaiah 41:10': {
+        reference: 'Isaiah 41:10',
+        text: 'So do not fear, for I am with you; do not be dismayed, for I am your God. I will strengthen you and help you; I will uphold you with my righteous right hand.',
+        theme: 'strength',
+        book: 'ISA',
+        chapter: 41,
+        verse: 10
+    },
+    'Jeremiah 29:11': {
+        reference: 'Jeremiah 29:11',
+        text: 'For I know the plans I have for you, declares the LORD, plans to prosper you and not to harm you, plans to give you hope and a future.',
+        theme: 'hope',
+        book: 'JER',
+        chapter: 29,
+        verse: 11
+    },
+    'Matthew 6:33': {
+        reference: 'Matthew 6:33',
+        text: 'But seek first his kingdom and his righteousness, and all these things will be given to you as well.',
+        theme: 'purpose',
+        book: 'MAT',
+        chapter: 6,
+        verse: 33
+    },
+    'Psalm 46:1': {
+        reference: 'Psalm 46:1',
+        text: 'God is our refuge and strength, an ever-present help in trouble.',
+        theme: 'strength',
+        book: 'PSA',
+        chapter: 46,
+        verse: 1
+    },
+    'Joshua 1:9': {
+        reference: 'Joshua 1:9',
+        text: 'Have I not commanded you? Be strong and courageous. Do not be afraid; do not be discouraged, for the LORD your God will be with you wherever you go.',
+        theme: 'strength',
+        book: 'JOS',
+        chapter: 1,
+        verse: 9
+    },
+    '2 Timothy 1:7': {
+        reference: '2 Timothy 1:7',
+        text: 'For the Spirit God gave us does not make us timid, but gives us power, love and self-discipline.',
+        theme: 'strength',
+        book: '2TI',
+        chapter: 1,
+        verse: 7
+    },
+    'Romans 12:2': {
+        reference: 'Romans 12:2',
+        text: 'Do not conform to the pattern of this world, but be transformed by the renewing of your mind. Then you will be able to test and approve what God\'s will is—his good, pleasing and perfect will.',
+        theme: 'faith',
+        book: 'ROM',
+        chapter: 12,
+        verse: 2
+    },
+    '1 Corinthians 13:4-5': {
+        reference: '1 Corinthians 13:4-5',
+        text: 'Love is patient, love is kind. It does not envy, it does not boast, it is not proud. It does not dishonor others, it is not self-seeking, it is not easily angered, it keeps no record of wrongs.',
+        theme: 'love',
+        book: '1CO',
+        chapter: 13,
+        verse: '4-5'
+    },
+    'Galatians 5:22-23': {
+        reference: 'Galatians 5:22-23',
+        text: 'But the fruit of the Spirit is love, joy, peace, forbearance, kindness, goodness, faithfulness, gentleness and self-control. Against such things there is no law.',
+        theme: 'faith',
+        book: 'GAL',
+        chapter: 5,
+        verse: '22-23'
+    },
+    'Ephesians 2:8-9': {
+        reference: 'Ephesians 2:8-9',
+        text: 'For it is by grace you have been saved, through faith—and this not from yourselves, it is the gift of God—not by works, so that no one can boast.',
+        theme: 'faith',
+        book: 'EPH',
+        chapter: 2,
+        verse: '8-9'
+    },
+    'Psalm 119:105': {
+        reference: 'Psalm 119:105',
+        text: 'Your word is a lamp for my feet, a light on my path.',
+        theme: 'faith',
+        book: 'PSA',
+        chapter: 119,
+        verse: 105
+    },
+    'Matthew 11:28': {
+        reference: 'Matthew 11:28',
+        text: 'Come to me, all you who are weary and burdened, and I will give you rest.',
+        theme: 'peace',
+        book: 'MAT',
+        chapter: 11,
+        verse: 28
+    },
+    'James 1:2-3': {
+        reference: 'James 1:2-3',
+        text: 'Consider it pure joy, my brothers and sisters, whenever you face trials of many kinds, because you know that the testing of your faith produces perseverance.',
+        theme: 'faith',
+        book: 'JAS',
+        chapter: 1,
+        verse: '2-3'
+    },
+    'Colossians 3:23': {
+        reference: 'Colossians 3:23',
+        text: 'Whatever you do, work at it with all your heart, as working for the Lord, not for human masters.',
+        theme: 'purpose',
+        book: 'COL',
+        chapter: 3,
+        verse: 23
+    },
+    'Hebrews 11:1': {
+        reference: 'Hebrews 11:1',
+        text: 'Now faith is confidence in what we hope for and assurance about what we do not see.',
+        theme: 'faith',
+        book: 'HEB',
+        chapter: 11,
+        verse: 1
+    }
+};
 
-// Commentary templates for different themes
+// Commentary templates
 const commentaryThemes = {
     love: [
-        "God's love is unconditional and everlasting. Today, reflect on how His love has transformed your life and share that love with others.",
-        "In this verse, we see the depth of God's love for humanity. His love never fails, never gives up, and is always patient with us."
+        "God's love is unconditional and everlasting. Today, reflect on how His love has transformed your life and share that love with others around you.",
+        "In this verse, we see the depth of God's love for humanity. His love never fails, never gives up, and is always patient with us through every season of life."
     ],
     faith: [
-        "Faith is trusting God even when we cannot see the path ahead. This verse reminds us that our faith should be rooted in God's promises.",
-        "Walking by faith means surrendering control and trusting that God's plan is perfect, even when we face uncertainty."
+        "Faith is trusting God even when we cannot see the path ahead. This verse reminds us that our faith should be rooted firmly in God's unchanging promises.",
+        "Walking by faith means surrendering control and trusting that God's plan is perfect, even when we face uncertainty and challenges in our daily lives."
     ],
     hope: [
-        "Hope is the anchor of our soul. In times of trouble, God's promises give us assurance that better days are ahead.",
-        "This verse teaches us that our hope is not wishful thinking, but a confident expectation based on God's faithfulness."
+        "Hope is the anchor of our soul in turbulent times. In times of trouble, God's promises give us assurance that better days are ahead and He is working all things for our good.",
+        "This verse teaches us that our hope is not wishful thinking, but a confident expectation based on God's faithfulness throughout generations."
     ],
     strength: [
-        "When we are weak, God is strong. This verse reminds us that we can face any challenge with His power working in us.",
-        "God's strength is made perfect in our weakness. Today, lean on Him for the courage and power you need."
+        "When we are weak, God is strong. This verse reminds us that we can face any challenge with His power working in us and through us.",
+        "God's strength is made perfect in our weakness. Today, lean on Him for the courage, endurance, and power you need to overcome obstacles."
     ],
     peace: [
-        "God's peace surpasses all understanding. In the midst of chaos, He offers a calm that the world cannot give.",
-        "This verse invites us to find rest in God's presence. His peace guards our hearts and minds from anxiety and fear."
+        "God's peace surpasses all understanding and logic. In the midst of chaos and uncertainty, He offers a calm that the world cannot give or take away.",
+        "This verse invites us to find rest in God's presence. His peace guards our hearts and minds from anxiety, fear, and worry about tomorrow."
     ],
     purpose: [
-        "God has a plan and purpose for your life. Trust that He is working all things together for your good.",
-        "Every moment of your life has meaning in God's grand design. Walk confidently knowing He directs your steps."
+        "God has a unique plan and purpose for your life. Trust that He is working all things together for your good, even when you can't see the full picture.",
+        "Every moment of your life has divine meaning in God's grand design. Walk confidently knowing He directs your steps and orders your path."
     ]
 };
 
 let currentVerse = null;
-let savedDevotions = JSON.parse(localStorage.getItem('savedDevotions')) || [];
+let savedDevotions = [];
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     initializeDevotionPage();
     setupEventListeners();
     loadTodaysVerse();
+    loadSavedDevotions();
 });
 
 function initializeDevotionPage() {
@@ -117,31 +262,63 @@ function setupEventListeners() {
     document.getElementById('shareBtn').addEventListener('click', shareDevotion);
 }
 
+function loadSavedDevotions() {
+    try {
+        const saved = localStorage.getItem('savedDevotions');
+        if (saved) {
+            savedDevotions = JSON.parse(saved);
+        }
+    } catch (error) {
+        console.error('Error loading saved devotions:', error);
+        savedDevotions = [];
+    }
+}
+
 // Load today's verse on page load
 function loadTodaysVerse() {
-    // Check if we already have a verse for today
     const today = new Date().toDateString();
     const cachedVerse = localStorage.getItem('todaysVerse');
     const cachedDate = localStorage.getItem('verseDate');
 
     if (cachedVerse && cachedDate === today) {
-        const verse = JSON.parse(cachedVerse);
-        displayVerse(verse);
+        try {
+            const verse = JSON.parse(cachedVerse);
+            displayVerse(verse);
+        } catch (error) {
+            console.error('Error loading cached verse:', error);
+            // Generate a new one
+            generateNewDevotion();
+        }
     }
 }
 
 // Generate new devotion
 async function generateNewDevotion() {
     const btn = document.getElementById('generateBtn');
+    const btnText = document.getElementById('btnText');
+    const loader = document.getElementById('loader');
+    
     btn.classList.add('loading');
     btn.disabled = true;
 
     try {
-        // Select random verse
-        const randomVerse = popularVerses[Math.floor(Math.random() * popularVerses.length)];
+        // Get random verse from database
+        const verseKeys = Object.keys(verseDatabase);
+        const randomKey = verseKeys[Math.floor(Math.random() * verseKeys.length)];
+        const verseData = verseDatabase[randomKey];
         
-        // Fetch verse text
-        const verseData = await fetchVerseFromAPI(randomVerse);
+        // Try to fetch from API if key is provided
+        if (BIBLE_API_KEY && BIBLE_API_KEY !== 'YOUR_API_KEY_HERE') {
+            try {
+                const apiVerse = await fetchFromBibleAPI(verseData);
+                if (apiVerse && apiVerse.text) {
+                    verseData.text = apiVerse.text;
+                }
+            } catch (apiError) {
+                console.log('API fetch failed, using cached verse:', apiError);
+                // Continue with cached verse
+            }
+        }
         
         // Display verse and commentary
         displayVerse(verseData);
@@ -163,69 +340,41 @@ async function generateNewDevotion() {
     }
 }
 
-// Fetch verse from Bible.org API (no key required)
-async function fetchVerseFromAPI(verseData) {
+// Fetch verse from Bible API
+async function fetchFromBibleAPI(verseData) {
     try {
-        // Use Bible.org API - it doesn't require authentication
-        const passage = `${verseData.book}+${verseData.chapter}:${verseData.verse}`;
-        const response = await fetch(`${BIBLE_ORG_API}?passage=${passage}&type=json`);
+        const verseId = `${verseData.book}.${verseData.chapter}.${verseData.verse}`;
+        const url = `https://api.scripture.api.bible/v1/bibles/de4e12af7f28f599-02/verses/${verseId}`;
         
+        const response = await fetch(url, {
+            headers: {
+                'api-key': BIBLE_API_KEY
+            }
+        });
+
         if (!response.ok) {
             throw new Error('API request failed');
         }
-        
+
         const data = await response.json();
         
-        if (data && data.length > 0) {
+        if (data && data.data && data.data.content) {
+            // Clean the text (remove HTML tags)
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data.data.content, 'text/html');
+            const cleanText = doc.body.textContent.trim();
+            
             return {
-                reference: verseData.reference,
-                text: data[0].text.trim(),
-                book: verseData.book,
-                chapter: verseData.chapter,
-                verse: verseData.verse
+                ...verseData,
+                text: cleanText
             };
-        } else {
-            // Fallback to hardcoded verses
-            return getFallbackVerse(verseData.reference);
         }
+        
+        return null;
     } catch (error) {
-        console.error('API Error:', error);
-        // Return fallback verse
-        return getFallbackVerse(verseData.reference);
+        console.error('Bible API Error:', error);
+        return null;
     }
-}
-
-// Fallback verses in case API fails
-function getFallbackVerse(reference) {
-    const fallbackVerses = {
-        'John 3:16': {
-            reference: 'John 3:16',
-            text: 'For God loved the world so much that he gave his only Son, so that everyone who believes in him may not die but have eternal life.',
-            theme: 'love'
-        },
-        'Philippians 4:13': {
-            reference: 'Philippians 4:13',
-            text: 'I can do all things through Christ who strengthens me.',
-            theme: 'strength'
-        },
-        'Psalm 23:1': {
-            reference: 'Psalm 23:1',
-            text: 'The Lord is my shepherd; I have everything I need.',
-            theme: 'peace'
-        },
-        'Romans 8:28': {
-            reference: 'Romans 8:28',
-            text: 'And we know that in all things God works for the good of those who love him, who have been called according to his purpose.',
-            theme: 'purpose'
-        },
-        'Jeremiah 29:11': {
-            reference: 'Jeremiah 29:11',
-            text: 'For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you, plans to give you hope and a future.',
-            theme: 'hope'
-        }
-    };
-
-    return fallbackVerses[reference] || fallbackVerses['John 3:16'];
 }
 
 // Display verse and generate commentary
@@ -243,24 +392,14 @@ function displayVerse(verseData) {
 
 // Generate contextual commentary
 function generateCommentary(verseData) {
-    // Determine theme based on verse content
-    const text = verseData.text.toLowerCase();
-    let theme = 'faith'; // default
-    
-    if (text.includes('love')) theme = 'love';
-    else if (text.includes('strength') || text.includes('strong')) theme = 'strength';
-    else if (text.includes('peace') || text.includes('rest')) theme = 'peace';
-    else if (text.includes('hope')) theme = 'hope';
-    else if (text.includes('plan') || text.includes('purpose')) theme = 'purpose';
-    
-    const themeCommentaries = commentaryThemes[theme];
+    const theme = verseData.theme || 'faith';
+    const themeCommentaries = commentaryThemes[theme] || commentaryThemes.faith;
     const selectedCommentary = themeCommentaries[Math.floor(Math.random() * themeCommentaries.length)];
     
-    // Create multi-paragraph commentary
     const commentary = `
         <p>${selectedCommentary}</p>
-        <p>As you meditate on this verse today, consider how God is speaking to your current situation. His word is alive and active, ready to transform your heart and mind.</p>
-        <p>Take a moment to pray and ask God to reveal the deeper meaning of this scripture in your life. Write down any insights or applications that come to mind.</p>
+        <p>As you meditate on this verse today, consider how God is speaking directly to your current situation. His word is alive and active, ready to transform your heart and renew your mind with truth.</p>
+        <p>Take a moment to pray and ask God to reveal the deeper meaning of this scripture in your life. Write down any insights, promises, or applications that come to mind as you reflect on His word.</p>
     `;
     
     return commentary;
@@ -294,14 +433,25 @@ function saveCurrentDevotion() {
     const devotion = {
         id: Date.now(),
         date: new Date().toISOString(),
+        dateString: new Date().toLocaleDateString(),
         verse: currentVerse,
         commentary: document.getElementById('commentaryContent').innerHTML
     };
 
     savedDevotions.unshift(devotion);
-    localStorage.setItem('savedDevotions', JSON.stringify(savedDevotions));
     
-    showToast('Saved to your devotions!');
+    // Keep only last 30 devotions
+    if (savedDevotions.length > 30) {
+        savedDevotions = savedDevotions.slice(0, 30);
+    }
+    
+    try {
+        localStorage.setItem('savedDevotions', JSON.stringify(savedDevotions));
+        showToast('Saved to your devotions!');
+    } catch (error) {
+        console.error('Error saving devotion:', error);
+        showToast('Error saving devotion');
+    }
     
     // Animate save button
     gsap.to('#saveBtn', {
@@ -325,15 +475,15 @@ function shareDevotion() {
         navigator.share({
             title: 'Daily Devotion',
             text: shareText
-        }).catch(err => console.log('Error sharing:', err));
-    } else {
-        // Fallback: Copy to clipboard
-        navigator.clipboard.writeText(shareText).then(() => {
-            showToast('Copied to clipboard!');
+        }).then(() => {
+            showToast('Shared successfully!');
         }).catch(err => {
-            console.error('Could not copy text:', err);
-            showToast('Could not copy to clipboard');
+            if (err.name !== 'AbortError') {
+                copyToClipboard(shareText);
+            }
         });
+    } else {
+        copyToClipboard(shareText);
     }
     
     // Animate share button
@@ -345,11 +495,49 @@ function shareDevotion() {
     });
 }
 
+function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('Copied to clipboard!');
+        }).catch(err => {
+            console.error('Could not copy text:', err);
+            fallbackCopyToClipboard(text);
+        });
+    } else {
+        fallbackCopyToClipboard(text);
+    }
+}
+
+function fallbackCopyToClipboard(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        showToast('Copied to clipboard!');
+    } catch (err) {
+        console.error('Fallback copy failed:', err);
+        showToast('Could not copy to clipboard');
+    }
+    
+    document.body.removeChild(textArea);
+}
+
 // Show toast notification
 function showToast(message) {
     const toast = document.getElementById('toast');
-    document.getElementById('toastMessage').textContent = message;
+    const toastMessage = document.getElementById('toastMessage');
     
+    if (!toast || !toastMessage) {
+        console.error('Toast elements not found');
+        return;
+    }
+    
+    toastMessage.textContent = message;
     toast.classList.add('show');
     
     setTimeout(() => {

@@ -1,6 +1,11 @@
-// SoundCloud Configuration
-// IMPORTANT: Replace with your own SoundCloud playlist or tracks
-const SOUNDCLOUD_PLAYLIST_URL = 'https://soundcloud.com/thoriso-shomang-977191300/sets/worship?si=f467d1849738423192900493c0657925&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing';
+fetch('https://api.soundcloud.com/tracks/977191300?client_id=cGLuFb9vlKW89vK8UCbJdM4L8fulUZb8')
+  .then(r => console.log('Status:', r.status))
+  .then(r => r.json())
+  .then(data => console.log(data));
+
+
+// SoundCloud Widget API Configuration
+const DEFAULT_PLAYLIST_URL = 'https://soundcloud.com/angeline-almy/sets/gospel-music-praise-and';
 
 // Timer Variables
 let timerInterval = null;
@@ -10,21 +15,21 @@ let isTimerRunning = false;
 // Music Player Variables
 let widget = null;
 let currentTrackIndex = 0;
-let playlist = [];
+let currentPlaylist = [];
 let isPlaying = false;
 let duration = 0;
 let currentTime = 0;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-    initializeSoundCloud();
+    initializeSoundCloudPlayer();
     initializeTimer();
+    initializeSearch();
     initializeAnimations();
 });
 
-// Initialize SoundCloud Widget
-function initializeSoundCloud() {
-    // Create invisible iframe for SoundCloud widget
+// Initialize SoundCloud Player
+function initializeSoundCloudPlayer() {
     const iframe = document.createElement('iframe');
     iframe.id = 'soundcloud-player';
     iframe.width = '0';
@@ -32,97 +37,234 @@ function initializeSoundCloud() {
     iframe.scrolling = 'no';
     iframe.frameborder = 'no';
     iframe.allow = 'autoplay';
-    iframe.src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(SOUNDCLOUD_PLAYLIST_URL)}&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false`;
-    
+    iframe.src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(DEFAULT_PLAYLIST_URL)}&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false`;
     document.body.appendChild(iframe);
 
-    // Initialize SoundCloud Widget API
     widget = SC.Widget('soundcloud-player');
-
-    // Wait for widget to be ready
+    
     widget.bind(SC.Widget.Events.READY, () => {
         console.log('SoundCloud widget ready');
-        
-        // Get playlist information
-        widget.getSounds((sounds) => {
-            playlist = sounds;
-            populatePlaylist(sounds);
-            
-            // Load first track
-            if (sounds.length > 0) {
-                loadTrack(0);
-            }
-        });
+        loadDefaultPlaylist();
+    });
 
-        // Bind events
-        widget.bind(SC.Widget.Events.PLAY, onPlay);
-        widget.bind(SC.Widget.Events.PAUSE, onPause);
-        widget.bind(SC.Widget.Events.FINISH, onFinish);
-        widget.bind(SC.Widget.Events.PLAY_PROGRESS, onPlayProgress);
+    widget.bind(SC.Widget.Events.PLAY, onPlay);
+    widget.bind(SC.Widget.Events.PAUSE, onPause);
+    widget.bind(SC.Widget.Events.FINISH, onFinish);
+    widget.bind(SC.Widget.Events.PLAY_PROGRESS, onPlayProgress);
+}
+
+// Load default playlist
+function loadDefaultPlaylist() {
+    widget.getSounds((sounds) => {
+        if (sounds && sounds.length > 0) {
+            currentPlaylist = sounds;
+            displayPlaylistTracks(sounds);
+            loadTrackInfo(sounds[0]);
+            
+            document.getElementById('playlistTitle').textContent = 'Gospel Music Praise & Worship';
+            document.getElementById('resultsInfo').style.display = 'block';
+            document.getElementById('resultsText').textContent = `${sounds.length} tracks loaded`;
+            
+            enablePlayerControls();
+        }
     });
 }
 
-// Load track
-function loadTrack(index) {
-    if (index < 0 || index >= playlist.length) return;
-    
-    currentTrackIndex = index;
-    const track = playlist[index];
-    
-    // Update UI
-    document.getElementById('trackTitle').textContent = track.title;
-    document.getElementById('artistName').textContent = track.user.username;
-    
-    // Update album art
-    const albumImage = document.getElementById('albumImage');
-    albumImage.src = track.artwork_url || track.user.avatar_url;
-    
-    // Update duration
-    duration = track.duration / 1000; // Convert to seconds
-    document.getElementById('duration').textContent = formatTime(duration);
-    
-    // Highlight active track in playlist
-    updatePlaylistUI();
-    
-    // Skip to track
-    widget.skip(index);
+// Initialize Search Functionality
+function initializeSearch() {
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+
+    // Search button click
+    searchBtn.addEventListener('click', () => {
+        const query = searchInput.value.trim();
+        if (query) {
+            performSearch(query);
+        }
+    });
+
+    // Enter key to search
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const query = searchInput.value.trim();
+            if (query) {
+                performSearch(query);
+            }
+        }
+    });
+
+    // Show/hide clear button
+    searchInput.addEventListener('input', (e) => {
+        if (e.target.value.length > 0) {
+            clearBtn.style.display = 'flex';
+        } else {
+            clearBtn.style.display = 'none';
+        }
+    });
+
+    // Clear search
+    clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        clearBtn.style.display = 'none';
+        searchInput.focus();
+        loadDefaultPlaylist();
+    });
+
+    // Filter buttons - filter current playlist
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const filter = btn.dataset.filter;
+            filterPlaylist(filter);
+        });
+    });
 }
 
-// Populate playlist UI
-function populatePlaylist(sounds) {
+// Filter current playlist based on search term
+function filterPlaylist(searchTerm) {
+    if (!currentPlaylist || currentPlaylist.length === 0) return;
+
+    let filtered = currentPlaylist;
+
+    if (searchTerm !== 'all') {
+        filtered = currentPlaylist.filter(track => {
+            const title = track.title.toLowerCase();
+            const artist = track.user.username.toLowerCase();
+            const term = searchTerm.toLowerCase();
+            return title.includes(term) || artist.includes(term);
+        });
+    }
+
+    displayPlaylistTracks(filtered);
+    document.getElementById('resultsText').textContent = `Showing ${filtered.length} of ${currentPlaylist.length} tracks`;
+}
+
+// Perform Search (searches within loaded playlist)
+function performSearch(query) {
+    const searchBtn = document.getElementById('searchBtn');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    
+    searchBtn.disabled = true;
+    loadingSpinner.style.display = 'block';
+
+    // Simulate loading delay
+    setTimeout(() => {
+        const filtered = currentPlaylist.filter(track => {
+            const title = track.title.toLowerCase();
+            const artist = track.user.username.toLowerCase();
+            const searchQuery = query.toLowerCase();
+            return title.includes(searchQuery) || artist.includes(searchQuery);
+        });
+
+        displayPlaylistTracks(filtered);
+        
+        document.getElementById('resultsInfo').style.display = 'block';
+        document.getElementById('resultsText').textContent = 
+            filtered.length > 0 
+                ? `Found ${filtered.length} tracks matching "${query}"`
+                : `No tracks found matching "${query}"`;
+
+        searchBtn.disabled = false;
+        loadingSpinner.style.display = 'none';
+    }, 500);
+}
+
+// Display playlist tracks
+function displayPlaylistTracks(tracks) {
     const playlistItems = document.getElementById('playlistItems');
     playlistItems.innerHTML = '';
-    
-    sounds.forEach((sound, index) => {
+
+    if (tracks.length === 0) {
+        playlistItems.innerHTML = `
+            <div class="empty-state">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
+                    <path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/>
+                </svg>
+                <p>No tracks found</p>
+            </div>
+        `;
+        return;
+    }
+
+    tracks.forEach((track, index) => {
         const item = document.createElement('div');
         item.className = 'playlist-item';
+        if (index === currentTrackIndex) item.classList.add('active');
+        
+        const duration = formatTime(track.duration / 1000);
         item.innerHTML = `
             <div class="playlist-item-info">
-                <h4>${sound.title}</h4>
-                <p>${sound.user.username}</p>
+                <h4>${track.title}</h4>
+                <p>${track.user.username}</p>
             </div>
-            <span>${formatTime(sound.duration / 1000)}</span>
+            <span class="playlist-item-duration">${duration}</span>
         `;
         
+        // Store original index for playback
+        const originalIndex = currentPlaylist.indexOf(track);
         item.addEventListener('click', () => {
-            loadTrack(index);
-            widget.play();
+            playTrackFromPlaylist(originalIndex);
         });
         
         playlistItems.appendChild(item);
     });
+
+    // Animate items
+    gsap.from('.playlist-item', {
+        duration: 0.5,
+        y: 20,
+        opacity: 0,
+        stagger: 0.05,
+        ease: 'power2.out'
+    });
 }
 
-// Update playlist UI highlighting
-function updatePlaylistUI() {
-    const items = document.querySelectorAll('.playlist-item');
-    items.forEach((item, index) => {
-        if (index === currentTrackIndex) {
-            item.classList.add('active');
-        } else {
-            item.classList.remove('active');
-        }
-    });
+// Play track from playlist by index
+function playTrackFromPlaylist(index) {
+    widget.skip(index);
+    widget.play();
+    currentTrackIndex = index;
+    updateActiveTrack(index);
+}
+
+// Load track info without playing
+function loadTrackInfo(track) {
+    document.getElementById('trackTitle').textContent = track.title;
+    document.getElementById('artistName').textContent = track.user.username;
+    
+    const albumImage = document.getElementById('albumImage');
+    const artworkUrl = track.artwork_url ? track.artwork_url.replace('-large', '-t500x500') : null;
+    albumImage.src = artworkUrl || track.user.avatar_url || 'https://via.placeholder.com/400?text=No+Artwork';
+    
+    duration = track.duration / 1000;
+    document.getElementById('duration').textContent = formatTime(duration);
+}
+
+// Update active track in playlist
+function updateActiveTrack(index) {
+    const playlistItems = document.querySelectorAll('.playlist-item');
+    playlistItems.forEach(item => item.classList.remove('active'));
+    
+    // Find and highlight the current track
+    if (playlistItems[index]) {
+        playlistItems[index].classList.add('active');
+        playlistItems[index].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    // Update track info
+    if (currentPlaylist[index]) {
+        loadTrackInfo(currentPlaylist[index]);
+    }
+}
+
+// Enable player controls
+function enablePlayerControls() {
+    document.getElementById('playPauseBtn').disabled = false;
+    document.getElementById('prevBtn').disabled = false;
+    document.getElementById('nextBtn').disabled = false;
 }
 
 // Player Controls
@@ -137,28 +279,29 @@ document.getElementById('playPauseBtn').addEventListener('click', () => {
 });
 
 document.getElementById('prevBtn').addEventListener('click', () => {
-    const newIndex = currentTrackIndex - 1;
-    if (newIndex >= 0) {
-        loadTrack(newIndex);
-        widget.play();
+    widget.prev();
+    if (currentTrackIndex > 0) {
+        currentTrackIndex--;
+        updateActiveTrack(currentTrackIndex);
     }
 });
 
 document.getElementById('nextBtn').addEventListener('click', () => {
-    const newIndex = currentTrackIndex + 1;
-    if (newIndex < playlist.length) {
-        loadTrack(newIndex);
-        widget.play();
+    widget.next();
+    if (currentTrackIndex < currentPlaylist.length - 1) {
+        currentTrackIndex++;
+        updateActiveTrack(currentTrackIndex);
     }
 });
 
 // Progress bar click
 document.getElementById('progressBar').addEventListener('click', (e) => {
     const progressBar = e.currentTarget;
-    const clickX = e.offsetX;
+    const rect = progressBar.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
     const width = progressBar.offsetWidth;
     const percentage = (clickX / width);
-    const seekTime = duration * percentage * 1000; // Convert to milliseconds
+    const seekTime = duration * percentage * 1000;
     
     widget.seekTo(seekTime);
 });
@@ -168,6 +311,11 @@ function onPlay() {
     isPlaying = true;
     document.getElementById('playIcon').style.display = 'none';
     document.getElementById('pauseIcon').style.display = 'block';
+    
+    widget.getCurrentSoundIndex((index) => {
+        currentTrackIndex = index;
+        updateActiveTrack(index);
+    });
 }
 
 function onPause() {
@@ -177,24 +325,25 @@ function onPause() {
 }
 
 function onFinish() {
-    // Auto play next track
-    const newIndex = currentTrackIndex + 1;
-    if (newIndex < playlist.length) {
-        loadTrack(newIndex);
-        widget.play();
+    if (currentTrackIndex < currentPlaylist.length - 1) {
+        currentTrackIndex++;
+        updateActiveTrack(currentTrackIndex);
+    } else {
+        // Reset to beginning
+        currentTrackIndex = 0;
+        updateActiveTrack(currentTrackIndex);
     }
 }
 
 function onPlayProgress(data) {
-    currentTime = data.currentPosition / 1000; // Convert to seconds
+    currentTime = data.currentPosition / 1000;
     const totalDuration = data.duration / 1000;
     
-    // Update progress bar
     const percentage = (data.currentPosition / data.duration) * 100;
     document.getElementById('progressFill').style.width = `${percentage}%`;
     
-    // Update current time display
     document.getElementById('currentTime').textContent = formatTime(currentTime);
+    document.getElementById('duration').textContent = formatTime(totalDuration);
 }
 
 // Timer Functions
@@ -223,13 +372,15 @@ function initializeTimer() {
         const seconds = parseInt(document.getElementById('secondsInput').value) || 0;
         
         remainingTime = (minutes * 60) + seconds;
-        updateTimerDisplay();
-        startTimer();
+        
+        if (remainingTime > 0) {
+            updateTimerDisplay();
+            startTimer();
+        }
         
         modal.classList.remove('active');
     });
 
-    // Close modal on background click
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             modal.classList.remove('active');
@@ -267,7 +418,6 @@ function updateTimerDisplay() {
 }
 
 function timerComplete() {
-    // Animate timer completion
     gsap.to('.timer-display', {
         scale: 1.1,
         duration: 0.3,
@@ -276,10 +426,17 @@ function timerComplete() {
         ease: 'power2.inOut'
     });
     
-    // Optional: Pause music when timer completes
     widget.pause();
     
-    alert('Prayer time complete!');
+    // Show notification
+    if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Prayer Time Complete!', {
+            body: 'Your prayer session has ended.',
+            icon: '/favicon.ico'
+        });
+    } else {
+        alert('Prayer time complete!');
+    }
 }
 
 // Utility Functions
@@ -291,7 +448,6 @@ function formatTime(seconds) {
 
 // GSAP Animations
 function initializeAnimations() {
-    // Animate header
     gsap.from('.prayer-title', {
         duration: 1,
         y: -50,
@@ -307,30 +463,35 @@ function initializeAnimations() {
         delay: 0.2
     });
 
-    // Animate timer
+    gsap.from('.search-section', {
+        duration: 1,
+        y: 30,
+        opacity: 0,
+        ease: 'power3.out',
+        delay: 0.4
+    });
+
     gsap.from('.timer-section', {
         duration: 1,
         scale: 0.8,
         opacity: 0,
         ease: 'back.out(1.7)',
-        delay: 0.4
+        delay: 0.6
     });
 
-    // Animate player card
     gsap.from('.player-card', {
         duration: 1,
         y: 50,
         opacity: 0,
         ease: 'power3.out',
-        delay: 0.6
+        delay: 0.8
     });
 
-    // Animate playlist
     gsap.from('.playlist', {
         duration: 1,
         y: 50,
         opacity: 0,
         ease: 'power3.out',
-        delay: 0.8
+        delay: 1
     });
 }

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JOURNAL - SELAH</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../CSS/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">SELAH</div>
+            <ul class="nav-menu">
+                <li><a href="../index.html">HOME</a></li>
+                <li><a href="../Pages/devotion.html">DEVOTION</a></li>
+                <li><a href="../Pages/devotion.html">PRAYER</a></li>
+                <li><a href="../Pages/journal.html"class="active">JOURNAL</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="journal-main">
+        <div class="journal-container">
+            <!-- Header -->
+            <header class="journal-header">
+                <h1 class="journal-title">Journal</h1>
+                <p class="journal-subtitle">Read, reflect, and record — attach notes to Psalms.</p>
+            </header>
+
+            <!-- Psalm Selection Section -->
+            <section class="psalm-section">
+                <h2 class="section-title">Select a Psalm</h2>
+                <div class="psalm-controls">
+                    <select id="psalmSelect" class="psalm-select">
+                        <option value="">Choose a Psalm (chapter)...</option>
+                    </select>
+                    <button type="button" id="loadPsalmBtn" class="load-btn">Load Psalm</button>
+                    <button type="button" id="favoritePsalmBtn" class="favorite-btn" title="Mark as favorite">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                        Favorite
+                    </button>
+                </div>
+
+                <!-- Psalm Display -->
+                <div id="psalmDisplay" class="psalm-display">
+                    <div class="empty-state">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
+                            <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>
+                        </svg>
+                        <p>Select a Psalm and click "Load Psalm" to view the scripture.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Journal Input Section -->
+            <section class="input-section">
+                <h2 class="section-title">Write Your Reflection</h2>
+                <textarea 
+                    id="journalInput" 
+                    class="journal-textarea" 
+                    placeholder="Write your thoughts, prayers, and reflections here..."
+                ></textarea>
+                <div class="input-footer">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="saveAsPrayer">
+                        <span class="checkbox-custom"></span>
+                        <span class="checkbox-text">Save as Prayer</span>
+                    </label>
+                    <button type="button" id="saveBtn" class="save-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+                        </svg>
+                        Save Entry
+                    </button>
+                </div>
+            </section>
+
+            <!-- Two Column Layout -->
+            <div class="columns-container">
+                <!-- Notes Column -->
+                <section class="column notes-column">
+                    <h2 class="column-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                        </svg>
+                        My Notes
+                    </h2>
+                    <div id="notesList" class="items-list">
+                        <div class="empty-state">
+                            <p>No notes yet. Write something and click "Save Entry".</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Prayers & Favorites Column -->
+                <section class="column prayers-column">
+                    <h2 class="column-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                        Prayers & Favorites
+                    </h2>
+                    <div id="prayersList" class="items-list">
+                        <div class="empty-state">
+                            <p>No prayers or favorites yet.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Footer</p>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <p id="toastMessage">Saved successfully!</p>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="../JavaScript/journal.js"></script>
+</body>
+</html>
