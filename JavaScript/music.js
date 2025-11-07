@@ -1,9 +1,8 @@
-// Backend API URL
-const API_BASE_URL = 'http://localhost:3000/api';
+// YouTube API Key - Replace with your actual key
+const YOUTUBE_API_KEY = 'AIzaSyCWH9dVCc88PD-Zkb0Rl5Q9ai5yQiL3FhE';
 
 // Default Playlist ID (YouTube Gospel Music Playlist)
-// Replace with your preferred playlist ID
-const DEFAULT_PLAYLIST_ID = 'PLqjAF6eK3VZ8qJYoLxVXqH8qGx5vZvLrJ';
+const DEFAULT_PLAYLIST_ID = 'PLmGouTBbived7Cy0F795kR2c_GEfa-Z-T';
 
 // Timer Variables
 let timerInterval = null;
@@ -29,7 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Load YouTube IFrame API
 function initializeYouTubePlayer() {
-    // Load YouTube IFrame API
     const tag = document.createElement('script');
     tag.src = 'https://www.youtube.com/iframe_api';
     const firstScriptTag = document.getElementsByTagName('script')[0];
@@ -78,7 +76,9 @@ function onPlayerStateChange(event) {
 // Load default playlist
 async function loadDefaultPlaylist() {
     try {
-        const response = await fetch(`${API_BASE_URL}/playlist/${DEFAULT_PLAYLIST_ID}/items`);
+        const response = await fetch(
+            `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${DEFAULT_PLAYLIST_ID}&maxResults=50&key=${YOUTUBE_API_KEY}`
+        );
         
         if (!response.ok) {
             throw new Error('Failed to load playlist');
@@ -95,7 +95,7 @@ async function loadDefaultPlaylist() {
         // Load first video info
         if (playlistVideos.length > 0) {
             loadVideoInfo(playlistVideos[0]);
-            player.cueVideoById(playlistVideos[0].contentDetails.videoId);
+            player.cueVideoById(playlistVideos[0].snippet.resourceId.videoId);
         }
         
         // Update UI
@@ -108,7 +108,7 @@ async function loadDefaultPlaylist() {
         
     } catch (error) {
         console.error('Error loading playlist:', error);
-        showError('Failed to load default playlist');
+        showError('Failed to load default playlist. Check your API key.');
     }
 }
 
@@ -118,9 +118,6 @@ function initializeSearch() {
     const searchBtn = document.getElementById('searchBtn');
     const clearBtn = document.getElementById('clearBtn');
     const filterBtns = document.querySelectorAll('.filter-btn');
-
-    // Update placeholder
-    searchInput.placeholder = 'Search for worship music, artists, or playlists...';
 
     // Search button click
     searchBtn.addEventListener('click', () => {
@@ -157,7 +154,7 @@ function initializeSearch() {
         clearResults();
     });
 
-    // Filter buttons - update for YouTube types
+    // Filter buttons
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             filterBtns.forEach(b => b.classList.remove('active'));
@@ -182,12 +179,12 @@ async function performSearch(query) {
     try {
         // Determine search type based on filter
         let searchType = 'video,playlist,channel';
-        if (currentFilter === 'tracks') searchType = 'video';
-        if (currentFilter === 'playlists') searchType = 'playlist';
-        if (currentFilter === 'users') searchType = 'channel';
+        if (currentFilter !== 'all') {
+            searchType = currentFilter;
+        }
         
         const response = await fetch(
-            `${API_BASE_URL}/search?q=${encodeURIComponent(query)}&type=${searchType}&maxResults=20`
+            `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=${searchType}&maxResults=20&key=${YOUTUBE_API_KEY}`
         );
 
         if (!response.ok) {
@@ -218,16 +215,10 @@ function applyFilter() {
     if (currentFilter === 'all') {
         filteredResults = searchResults;
     } else {
-        const filterMap = {
-            'tracks': 'youtube#video',
-            'playlists': 'youtube#playlist',
-            'users': 'youtube#channel'
-        };
-        
-        const kindToFilter = filterMap[currentFilter];
-        filteredResults = searchResults.filter(item => 
-            item.id?.kind === kindToFilter || item.kind === kindToFilter
-        );
+        filteredResults = searchResults.filter(item => {
+            const kind = item.id?.kind || '';
+            return kind === `youtube#${currentFilter}`;
+        });
     }
 }
 
@@ -257,19 +248,21 @@ function displayPlaylistTracks(videos) {
     });
 
     // Animate items
-    gsap.from('.playlist-item', {
-        duration: 0.5,
-        y: 20,
-        opacity: 0,
-        stagger: 0.05,
-        ease: 'power2.out'
-    });
+    if (typeof gsap !== 'undefined') {
+        gsap.from('.playlist-item', {
+            duration: 0.5,
+            y: 20,
+            opacity: 0,
+            stagger: 0.05,
+            ease: 'power2.out'
+        });
+    }
 }
 
 // Play video from playlist by index
 function playVideoFromPlaylist(index) {
     if (playlistVideos[index]) {
-        const videoId = playlistVideos[index].contentDetails?.videoId || playlistVideos[index].id?.videoId;
+        const videoId = playlistVideos[index].snippet.resourceId?.videoId;
         if (videoId) {
             player.loadVideoById(videoId);
             currentTrackIndex = index;
@@ -282,9 +275,10 @@ function playVideoFromPlaylist(index) {
 function loadVideoInfo(video) {
     const title = video.snippet.title;
     const channel = video.snippet.channelTitle;
-    const thumbnail = video.snippet.thumbnails.high?.url || 
-                     video.snippet.thumbnails.medium?.url || 
-                     video.snippet.thumbnails.default?.url;
+    const thumbnail = video.snippet.thumbnails?.high?.url || 
+                     video.snippet.thumbnails?.medium?.url || 
+                     video.snippet.thumbnails?.default?.url ||
+                     'https://via.placeholder.com/200';
     
     document.getElementById('trackTitle').textContent = title;
     document.getElementById('artistName').textContent = channel;
@@ -327,13 +321,15 @@ function displaySearchResults() {
     });
 
     // Animate results
-    gsap.from('.playlist-item', {
-        duration: 0.5,
-        y: 20,
-        opacity: 0,
-        stagger: 0.1,
-        ease: 'power2.out'
-    });
+    if (typeof gsap !== 'undefined') {
+        gsap.from('.playlist-item', {
+            duration: 0.5,
+            y: 20,
+            opacity: 0,
+            stagger: 0.1,
+            ease: 'power2.out'
+        });
+    }
 }
 
 // Create result item element
@@ -341,7 +337,7 @@ function createResultItem(item, index) {
     const div = document.createElement('div');
     div.className = 'playlist-item';
     
-    const kind = item.id?.kind || item.kind;
+    const kind = item.id?.kind || '';
     let content = '';
     
     if (kind === 'youtube#video') {
@@ -364,7 +360,7 @@ function createResultItem(item, index) {
         content = `
             <div class="playlist-item-info">
                 <h4>${item.snippet.title}</h4>
-                <p>${item.snippet.description?.substring(0, 100)}...</p>
+                <p>${item.snippet.description?.substring(0, 100) || 'Channel'}...</p>
             </div>
             <span class="playlist-item-type">Channel</span>
         `;
@@ -382,7 +378,7 @@ function createResultItem(item, index) {
 
 // Handle result item click
 async function handleResultClick(item, index) {
-    const kind = item.id?.kind || item.kind;
+    const kind = item.id?.kind || '';
     
     if (kind === 'youtube#video') {
         playVideo(item);
@@ -405,7 +401,7 @@ async function handleResultClick(item, index) {
 
 // Play a video
 function playVideo(video) {
-    const videoId = video.id?.videoId || video.contentDetails?.videoId;
+    const videoId = video.id?.videoId;
     if (videoId) {
         player.loadVideoById(videoId);
         loadVideoInfo(video);
@@ -419,7 +415,9 @@ async function loadPlaylist(playlist) {
         const playlistId = playlist.id?.playlistId;
         if (!playlistId) return;
         
-        const response = await fetch(`${API_BASE_URL}/playlist/${playlistId}/items`);
+        const response = await fetch(
+            `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${YOUTUBE_API_KEY}`
+        );
         
         if (!response.ok) {
             throw new Error('Failed to load playlist');
@@ -565,12 +563,14 @@ function initializeTimer() {
 
     setTimeBtn.addEventListener('click', () => {
         modal.classList.add('active');
-        gsap.from('.modal-content', {
-            scale: 0.8,
-            opacity: 0,
-            duration: 0.3,
-            ease: 'back.out(1.7)'
-        });
+        if (typeof gsap !== 'undefined') {
+            gsap.from('.modal-content', {
+                scale: 0.8,
+                opacity: 0,
+                duration: 0.3,
+                ease: 'back.out(1.7)'
+            });
+        }
     });
 
     cancelBtn.addEventListener('click', () => {
@@ -625,13 +625,15 @@ function updateTimerDisplay() {
 }
 
 function timerComplete() {
-    gsap.to('.timer-display', {
-        scale: 1.1,
-        duration: 0.3,
-        yoyo: true,
-        repeat: 3,
-        ease: 'power2.inOut'
-    });
+    if (typeof gsap !== 'undefined') {
+        gsap.to('.timer-display', {
+            scale: 1.1,
+            duration: 0.3,
+            yoyo: true,
+            repeat: 3,
+            ease: 'power2.inOut'
+        });
+    }
     
     if (player) {
         player.pauseVideo();
@@ -648,6 +650,8 @@ function formatTime(seconds) {
 
 // GSAP Animations
 function initializeAnimations() {
+    if (typeof gsap === 'undefined') return;
+    
     gsap.from('.prayer-title', {
         duration: 1,
         y: -50,

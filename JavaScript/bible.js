@@ -1,171 +1,35 @@
-// API Configuration
-// Using Bible API for verse retrieval
-const BIBLE_API_KEY = '9O1az6HSvI8E34rs5UY3H'; // Get from https://scripture.api.bible/
-const BIBLE_API_URL = 'https://api.scripture.api.bible/v1';
-const BIBLE_ID = 'de4e12af7f28f599-02'; 
-
-const verseDatabase = {
-    'John 3:16': {
-        reference: 'John 3:16',
-        text: 'For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.',
-        theme: 'love',
-        book: 'JHN',
-        chapter: 3,
-        verse: 16
-    },
-    'Philippians 4:13': {
-        reference: 'Philippians 4:13',
-        text: 'I can do all this through him who gives me strength.',
-        theme: 'strength',
-        book: 'PHP',
-        chapter: 4,
-        verse: 13
-    },
-    'Psalm 23:1': {
-        reference: 'Psalm 23:1',
-        text: 'The LORD is my shepherd, I lack nothing.',
-        theme: 'peace',
-        book: 'PSA',
-        chapter: 23,
-        verse: 1
-    },
-    'Romans 8:28': {
-        reference: 'Romans 8:28',
-        text: 'And we know that in all things God works for the good of those who love him, who have been called according to his purpose.',
-        theme: 'purpose',
-        book: 'ROM',
-        chapter: 8,
-        verse: 28
-    },
-    'Proverbs 3:5-6': {
-        reference: 'Proverbs 3:5-6',
-        text: 'Trust in the LORD with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.',
-        theme: 'faith',
-        book: 'PRO',
-        chapter: 3,
-        verse: '5-6'
-    },
-    'Isaiah 41:10': {
-        reference: 'Isaiah 41:10',
-        text: 'So do not fear, for I am with you; do not be dismayed, for I am your God. I will strengthen you and help you; I will uphold you with my righteous right hand.',
-        theme: 'strength',
-        book: 'ISA',
-        chapter: 41,
-        verse: 10
-    },
-    'Jeremiah 29:11': {
-        reference: 'Jeremiah 29:11',
-        text: 'For I know the plans I have for you, declares the LORD, plans to prosper you and not to harm you, plans to give you hope and a future.',
-        theme: 'hope',
-        book: 'JER',
-        chapter: 29,
-        verse: 11
-    },
-    'Matthew 6:33': {
-        reference: 'Matthew 6:33',
-        text: 'But seek first his kingdom and his righteousness, and all these things will be given to you as well.',
-        theme: 'purpose',
-        book: 'MAT',
-        chapter: 6,
-        verse: 33
-    },
-    'Psalm 46:1': {
-        reference: 'Psalm 46:1',
-        text: 'God is our refuge and strength, an ever-present help in trouble.',
-        theme: 'strength',
-        book: 'PSA',
-        chapter: 46,
-        verse: 1
-    },
-    'Joshua 1:9': {
-        reference: 'Joshua 1:9',
-        text: 'Have I not commanded you? Be strong and courageous. Do not be afraid; do not be discouraged, for the LORD your God will be with you wherever you go.',
-        theme: 'strength',
-        book: 'JOS',
-        chapter: 1,
-        verse: 9
-    },
-    '2 Timothy 1:7': {
-        reference: '2 Timothy 1:7',
-        text: 'For the Spirit God gave us does not make us timid, but gives us power, love and self-discipline.',
-        theme: 'strength',
-        book: '2TI',
-        chapter: 1,
-        verse: 7
-    },
-    'Romans 12:2': {
-        reference: 'Romans 12:2',
-        text: 'Do not conform to the pattern of this world, but be transformed by the renewing of your mind. Then you will be able to test and approve what God\'s will is—his good, pleasing and perfect will.',
-        theme: 'faith',
-        book: 'ROM',
-        chapter: 12,
-        verse: 2
-    },
-    '1 Corinthians 13:4-5': {
-        reference: '1 Corinthians 13:4-5',
-        text: 'Love is patient, love is kind. It does not envy, it does not boast, it is not proud. It does not dishonor others, it is not self-seeking, it is not easily angered, it keeps no record of wrongs.',
-        theme: 'love',
-        book: '1CO',
-        chapter: 13,
-        verse: '4-5'
-    },
-    'Galatians 5:22-23': {
-        reference: 'Galatians 5:22-23',
-        text: 'But the fruit of the Spirit is love, joy, peace, forbearance, kindness, goodness, faithfulness, gentleness and self-control. Against such things there is no law.',
-        theme: 'faith',
-        book: 'GAL',
-        chapter: 5,
-        verse: '22-23'
-    },
-    'Ephesians 2:8-9': {
-        reference: 'Ephesians 2:8-9',
-        text: 'For it is by grace you have been saved, through faith—and this not from yourselves, it is the gift of God—not by works, so that no one can boast.',
-        theme: 'faith',
-        book: 'EPH',
-        chapter: 2,
-        verse: '8-9'
-    },
-    'Psalm 119:105': {
-        reference: 'Psalm 119:105',
-        text: 'Your word is a lamp for my feet, a light on my path.',
-        theme: 'faith',
-        book: 'PSA',
-        chapter: 119,
-        verse: 105
-    },
-    'Matthew 11:28': {
-        reference: 'Matthew 11:28',
-        text: 'Come to me, all you who are weary and burdened, and I will give you rest.',
-        theme: 'peace',
-        book: 'MAT',
-        chapter: 11,
-        verse: 28
-    },
-    'James 1:2-3': {
-        reference: 'James 1:2-3',
-        text: 'Consider it pure joy, my brothers and sisters, whenever you face trials of many kinds, because you know that the testing of your faith produces perseverance.',
-        theme: 'faith',
-        book: 'JAS',
-        chapter: 1,
-        verse: '2-3'
-    },
-    'Colossians 3:23': {
-        reference: 'Colossians 3:23',
-        text: 'Whatever you do, work at it with all your heart, as working for the Lord, not for human masters.',
-        theme: 'purpose',
-        book: 'COL',
-        chapter: 3,
-        verse: 23
-    },
-    'Hebrews 11:1': {
-        reference: 'Hebrews 11:1',
-        text: 'Now faith is confidence in what we hope for and assurance about what we do not see.',
-        theme: 'faith',
-        book: 'HEB',
-        chapter: 11,
-        verse: 1
-    }
+const CONFIG = {
+    BIBLE_API_URL: 'https://bible-api.com'
 };
+
+// Verse database with book codes for API
+const popularVerses = [
+    { reference: 'John 3:16', apiRef: 'John 3:16', theme: 'love' },
+    { reference: 'Philippians 4:13', apiRef: 'Philippians 4:13', theme: 'strength' },
+    { reference: 'Psalm 23:1', apiRef: 'Psalms 23:1', theme: 'peace' },
+    { reference: 'Romans 8:28', apiRef: 'Romans 8:28', theme: 'purpose' },
+    { reference: 'Proverbs 3:5-6', apiRef: 'Proverbs 3:5-6', theme: 'faith' },
+    { reference: 'Isaiah 41:10', apiRef: 'Isaiah 41:10', theme: 'strength' },
+    { reference: 'Jeremiah 29:11', apiRef: 'Jeremiah 29:11', theme: 'hope' },
+    { reference: 'Matthew 6:33', apiRef: 'Matthew 6:33', theme: 'purpose' },
+    { reference: 'Psalm 46:1', apiRef: 'Psalms 46:1', theme: 'strength' },
+    { reference: 'Joshua 1:9', apiRef: 'Joshua 1:9', theme: 'strength' },
+    { reference: '2 Timothy 1:7', apiRef: '2 Timothy 1:7', theme: 'strength' },
+    { reference: 'Romans 12:2', apiRef: 'Romans 12:2', theme: 'faith' },
+    { reference: '1 Corinthians 13:4-5', apiRef: '1 Corinthians 13:4-5', theme: 'love' },
+    { reference: 'Galatians 5:22-23', apiRef: 'Galatians 5:22-23', theme: 'faith' },
+    { reference: 'Ephesians 2:8-9', apiRef: 'Ephesians 2:8-9', theme: 'faith' },
+    { reference: 'Psalm 119:105', apiRef: 'Psalms 119:105', theme: 'faith' },
+    { reference: 'Matthew 11:28', apiRef: 'Matthew 11:28', theme: 'peace' },
+    { reference: 'James 1:2-3', apiRef: 'James 1:2-3', theme: 'faith' },
+    { reference: 'Colossians 3:23', apiRef: 'Colossians 3:23', theme: 'purpose' },
+    { reference: 'Hebrews 11:1', apiRef: 'Hebrews 11:1', theme: 'faith' },
+    { reference: 'Psalm 27:1', apiRef: 'Psalms 27:1', theme: 'strength' },
+    { reference: 'Matthew 28:20', apiRef: 'Matthew 28:20', theme: 'peace' },
+    { reference: '1 Peter 5:7', apiRef: '1 Peter 5:7', theme: 'peace' },
+    { reference: 'Proverbs 16:3', apiRef: 'Proverbs 16:3', theme: 'purpose' },
+    { reference: 'Isaiah 40:31', apiRef: 'Isaiah 40:31', theme: 'strength' }
+];
 
 // Commentary templates
 const commentaryThemes = {
@@ -257,9 +121,13 @@ function initializeDevotionPage() {
 }
 
 function setupEventListeners() {
-    document.getElementById('generateBtn').addEventListener('click', generateNewDevotion);
-    document.getElementById('saveBtn').addEventListener('click', saveCurrentDevotion);
-    document.getElementById('shareBtn').addEventListener('click', shareDevotion);
+    const generateBtn = document.getElementById('generateBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    
+    if (generateBtn) generateBtn.addEventListener('click', generateNewDevotion);
+    if (saveBtn) saveBtn.addEventListener('click', saveCurrentDevotion);
+    if (shareBtn) shareBtn.addEventListener('click', shareDevotion);
 }
 
 function loadSavedDevotions() {
@@ -286,9 +154,48 @@ function loadTodaysVerse() {
             displayVerse(verse);
         } catch (error) {
             console.error('Error loading cached verse:', error);
-            // Generate a new one
             generateNewDevotion();
         }
+    }
+}
+
+// Fetch verse from bible-api.com
+async function fetchVerseFromAPI(verseData) {
+    try {
+        const url = `${CONFIG.BIBLE_API_URL}/${encodeURIComponent(verseData.apiRef)}`;
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data && data.text) {
+            // Clean the text - remove verse numbers and extra formatting
+            let cleanText = data.text.trim();
+            
+            // If it's a range of verses, format nicely
+            if (data.verses && data.verses.length > 0) {
+                cleanText = data.verses.map(v => v.text).join(' ');
+            }
+            
+            // Remove extra whitespace
+            cleanText = cleanText.replace(/\s+/g, ' ').trim();
+            
+            return {
+                reference: verseData.reference,
+                text: cleanText,
+                theme: verseData.theme
+            };
+        }
+        
+        throw new Error('No verse text returned');
+        
+    } catch (error) {
+        console.error('Bible API Error:', error);
+        throw error;
     }
 }
 
@@ -298,27 +205,17 @@ async function generateNewDevotion() {
     const btnText = document.getElementById('btnText');
     const loader = document.getElementById('loader');
     
+    if (!btn) return;
+    
     btn.classList.add('loading');
     btn.disabled = true;
 
     try {
         // Get random verse from database
-        const verseKeys = Object.keys(verseDatabase);
-        const randomKey = verseKeys[Math.floor(Math.random() * verseKeys.length)];
-        const verseData = verseDatabase[randomKey];
+        const randomVerse = popularVerses[Math.floor(Math.random() * popularVerses.length)];
         
-        // Try to fetch from API if key is provided
-        if (BIBLE_API_KEY && BIBLE_API_KEY !== 'YOUR_API_KEY_HERE') {
-            try {
-                const apiVerse = await fetchFromBibleAPI(verseData);
-                if (apiVerse && apiVerse.text) {
-                    verseData.text = apiVerse.text;
-                }
-            } catch (apiError) {
-                console.log('API fetch failed, using cached verse:', apiError);
-                // Continue with cached verse
-            }
-        }
+        // Fetch from API
+        const verseData = await fetchVerseFromAPI(randomVerse);
         
         // Display verse and commentary
         displayVerse(verseData);
@@ -331,49 +228,16 @@ async function generateNewDevotion() {
         // Animate new content
         animateContentChange();
         
+        showToast('New devotion loaded!');
+        
     } catch (error) {
         console.error('Error generating devotion:', error);
         showToast('Error loading verse. Please try again.');
     } finally {
-        btn.classList.remove('loading');
-        btn.disabled = false;
-    }
-}
-
-// Fetch verse from Bible API
-async function fetchFromBibleAPI(verseData) {
-    try {
-        const verseId = `${verseData.book}.${verseData.chapter}.${verseData.verse}`;
-        const url = `https://api.scripture.api.bible/v1/bibles/de4e12af7f28f599-02/verses/${verseId}`;
-        
-        const response = await fetch(url, {
-            headers: {
-                'api-key': BIBLE_API_KEY
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('API request failed');
+        if (btn) {
+            btn.classList.remove('loading');
+            btn.disabled = false;
         }
-
-        const data = await response.json();
-        
-        if (data && data.data && data.data.content) {
-            // Clean the text (remove HTML tags)
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(data.data.content, 'text/html');
-            const cleanText = doc.body.textContent.trim();
-            
-            return {
-                ...verseData,
-                text: cleanText
-            };
-        }
-        
-        return null;
-    } catch (error) {
-        console.error('Bible API Error:', error);
-        return null;
     }
 }
 
@@ -381,13 +245,22 @@ async function fetchFromBibleAPI(verseData) {
 function displayVerse(verseData) {
     currentVerse = verseData;
     
+    const verseRefElement = document.getElementById('verseReference');
+    const verseTextElement = document.getElementById('verseText');
+    const commentaryElement = document.getElementById('commentaryContent');
+    
+    if (!verseRefElement || !verseTextElement || !commentaryElement) {
+        console.error('Required elements not found');
+        return;
+    }
+    
     // Update verse reference and text
-    document.getElementById('verseReference').textContent = verseData.reference;
-    document.getElementById('verseText').textContent = verseData.text;
+    verseRefElement.textContent = verseData.reference;
+    verseTextElement.textContent = verseData.text;
     
     // Generate and display commentary
     const commentary = generateCommentary(verseData);
-    document.getElementById('commentaryContent').innerHTML = commentary;
+    commentaryElement.innerHTML = commentary;
 }
 
 // Generate contextual commentary
@@ -407,20 +280,27 @@ function generateCommentary(verseData) {
 
 // Animate content change
 function animateContentChange() {
-    gsap.from('.verse-content', {
-        duration: 0.6,
-        x: -30,
-        opacity: 0,
-        ease: 'power2.out'
-    });
+    const verseContent = document.querySelector('.verse-content');
+    const commentary = document.getElementById('commentaryContent');
+    
+    if (verseContent) {
+        gsap.from(verseContent, {
+            duration: 0.6,
+            x: -30,
+            opacity: 0,
+            ease: 'power2.out'
+        });
+    }
 
-    gsap.from('#commentaryContent', {
-        duration: 0.6,
-        y: 20,
-        opacity: 0,
-        ease: 'power2.out',
-        delay: 0.2
-    });
+    if (commentary) {
+        gsap.from(commentary, {
+            duration: 0.6,
+            y: 20,
+            opacity: 0,
+            ease: 'power2.out',
+            delay: 0.2
+        });
+    }
 }
 
 // Save current devotion
@@ -435,7 +315,7 @@ function saveCurrentDevotion() {
         date: new Date().toISOString(),
         dateString: new Date().toLocaleDateString(),
         verse: currentVerse,
-        commentary: document.getElementById('commentaryContent').innerHTML
+        commentary: document.getElementById('commentaryContent')?.innerHTML || ''
     };
 
     savedDevotions.unshift(devotion);
@@ -454,12 +334,15 @@ function saveCurrentDevotion() {
     }
     
     // Animate save button
-    gsap.to('#saveBtn', {
-        scale: 0.9,
-        duration: 0.1,
-        yoyo: true,
-        repeat: 1
-    });
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) {
+        gsap.to(saveBtn, {
+            scale: 0.9,
+            duration: 0.1,
+            yoyo: true,
+            repeat: 1
+        });
+    }
 }
 
 // Share devotion
@@ -487,12 +370,15 @@ function shareDevotion() {
     }
     
     // Animate share button
-    gsap.to('#shareBtn', {
-        scale: 0.9,
-        duration: 0.1,
-        yoyo: true,
-        repeat: 1
-    });
+    const shareBtn = document.getElementById('shareBtn');
+    if (shareBtn) {
+        gsap.to(shareBtn, {
+            scale: 0.9,
+            duration: 0.1,
+            yoyo: true,
+            repeat: 1
+        });
+    }
 }
 
 function copyToClipboard(text) {
@@ -533,7 +419,7 @@ function showToast(message) {
     const toastMessage = document.getElementById('toastMessage');
     
     if (!toast || !toastMessage) {
-        console.error('Toast elements not found');
+        console.log(message);
         return;
     }
     
