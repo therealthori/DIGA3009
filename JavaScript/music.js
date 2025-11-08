@@ -1,25 +1,25 @@
-// API Configuration - Using your backend server
-const API_BASE_URL = 'http://localhost:3000/api/youtube';
+const API_BASE_URL = 'http://localhost:3000/api';
 
-// Default Playlist ID
 const DEFAULT_PLAYLIST_ID = 'PLf-D8i92I2StkrJGNc-C3LI3NNoNbiNHY';
 
-// Timer Variables
+http://localhost:3000/api/youtube/playlist/PLf-D8i92I2StkrJGNc-C3LI3NNoNbiNHY/
+
 let timerInterval = null;
 let remainingTime = 0;
 let isTimerRunning = false;
 
-// Music Player Variables
 let player = null;
 let currentTrackIndex = 0;
 let playlistVideos = [];
 let isPlaying = false;
 
-// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     initializeYouTubePlayer();
     initializeTimer();
     initializeAnimations();
+    
+    // Register GSAP plugins
+    gsap.registerPlugin(MotionPathPlugin);
 });
 
 // Load YouTube IFrame API
@@ -30,17 +30,16 @@ function initializeYouTubePlayer() {
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 }
 
-// YouTube API calls this function when ready
 window.onYouTubeIframeAPIReady = function() {
     player = new YT.Player('youtube-player', {
-        height: '0',
-        width: '0',
+        height: '100%',
+        width: '100%',
         playerVars: {
             'autoplay': 0,
-            'controls': 0,
+            'controls': 1,
             'rel': 0,
-            'enablejsapi': 1,
-            'origin': window.location.origin
+            'modestbranding': 1,
+            'enablejsapi': 1
         },
         events: {
             'onReady': onPlayerReady,
@@ -52,22 +51,12 @@ window.onYouTubeIframeAPIReady = function() {
 
 function onPlayerError(event) {
     console.error('YouTube player error:', event.data);
-    const errorMessages = {
-        2: 'Invalid video ID',
-        5: 'HTML5 player error',
-        100: 'Video not found or private',
-        101: 'Video not allowed in embedded player',
-        150: 'Video not allowed in embedded player'
-    };
-    const message = errorMessages[event.data] || 'Unknown error';
-    console.log(`Player error: ${message}`);
 }
 
 function onPlayerReady(event) {
     console.log('YouTube player ready');
     loadDefaultPlaylist();
     
-    // Start progress updater
     setInterval(updateProgress, 1000);
 }
 
@@ -76,6 +65,7 @@ function onPlayerStateChange(event) {
         isPlaying = true;
         document.getElementById('playIcon').style.display = 'none';
         document.getElementById('pauseIcon').style.display = 'block';
+        document.getElementById('videoOverlay').style.opacity = '0';
     } else if (event.data === YT.PlayerState.PAUSED) {
         isPlaying = false;
         document.getElementById('playIcon').style.display = 'block';
@@ -85,7 +75,6 @@ function onPlayerStateChange(event) {
     }
 }
 
-// Load default playlist from YOUR backend server
 async function loadDefaultPlaylist() {
     try {
         const response = await fetch(
@@ -102,34 +91,16 @@ async function loadDefaultPlaylist() {
             throw new Error('No videos in playlist');
         }
         
-        // Transform server response to match expected format
-        playlistVideos = data.items.map(item => ({
-            snippet: {
-                title: item.title,
-                channelTitle: item.channelTitle,
-                description: item.description,
-                resourceId: {
-                    videoId: item.videoId
-                },
-                thumbnails: {
-                    default: { url: item.thumbnails.default },
-                    medium: { url: item.thumbnails.medium },
-                    high: { url: item.thumbnails.high }
-                }
-            }
-        }));
+        playlistVideos = data.items;
         
-        // Display playlist
-        displayPlaylistTracks(playlistVideos);
+        displayPlaylistGrid(playlistVideos);
         
-        // Load first video info
+        document.getElementById('videoCount').textContent = `${playlistVideos.length} videos`;
+        
         if (playlistVideos.length > 0) {
-            loadVideoInfo(playlistVideos[0]);
-            player.cueVideoById(playlistVideos[0].snippet.resourceId.videoId);
+            player.cueVideoById(playlistVideos[0].videoId);
+            updateVideoInfo(playlistVideos[0]);
         }
-        
-        // Update UI
-        document.getElementById('playlistTitle').textContent = 'Gospel Music Playlist';
         
     } catch (error) {
         console.error('Error loading YouTube playlist:', error);
@@ -137,25 +108,9 @@ async function loadDefaultPlaylist() {
     }
 }
 
-// Show fallback message if server fails
-function showFallbackMessage() {
-    const playlistItems = document.getElementById('playlistItems');
-    playlistItems.innerHTML = `
-        <div class="empty-state">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-            </svg>
-            <p>Unable to load playlist. Make sure the server is running.</p>
-            <p style="font-size: 0.9rem; margin-top: 1rem;">Run: <code>npm start</code> in the server folder</p>
-            <a href="https://www.youtube.com/playlist?list=${DEFAULT_PLAYLIST_ID}" target="_blank" style="color: #10b981; text-decoration: underline;">Open Playlist on YouTube</a>
-        </div>
-    `;
-}
-
-// Display playlist tracks
-function displayPlaylistTracks(videos) {
-    const playlistItems = document.getElementById('playlistItems');
-    playlistItems.innerHTML = '';
+function displayPlaylistGrid(videos) {
+    const playlistGrid = document.getElementById('playlistGrid');
+    playlistGrid.innerHTML = '';
 
     videos.forEach((video, index) => {
         const item = document.createElement('div');
@@ -163,70 +118,104 @@ function displayPlaylistTracks(videos) {
         if (index === 0) item.classList.add('active');
         
         item.innerHTML = `
+            <img src="${video.thumbnails.medium}" alt="${video.title}" class="playlist-item-thumbnail">
             <div class="playlist-item-info">
-                <h4>${video.snippet.title}</h4>
-                <p>${video.snippet.channelTitle}</p>
+                <div class="playlist-item-title">${video.title}</div>
+                <div class="playlist-item-channel">${video.channelTitle}</div>
             </div>
         `;
         
         item.addEventListener('click', () => {
-            playVideoFromPlaylist(index);
-            updateActiveTrack(index);
+            playVideo(index);
+            updateActiveItem(index);
         });
         
-        playlistItems.appendChild(item);
+        playlistGrid.appendChild(item);
     });
 
-    // Animate items
-    gsap.from('.playlist-item', {
-        duration: 0.5,
-        y: 20,
-        opacity: 0,
-        stagger: 0.05,
-        ease: 'power2.out'
+    animatePlaylistItems();
+}
+
+function animatePlaylistItems() {
+    const items = document.querySelectorAll('.playlist-item');
+    
+    items.forEach((item, index) => {
+        gsap.to(item, {
+            y: "random(-10, 10)",
+            duration: "random(2, 3)",
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut",
+            delay: index * 0.1
+        });
+        
+        gsap.from(item, {
+            duration: 0.6,
+            opacity: 0,
+            scale: 0.8,
+            delay: index * 0.05,
+            ease: 'back.out(1.7)'
+        });
     });
 }
 
-// Play video from playlist by index
-function playVideoFromPlaylist(index) {
+function playVideo(index) {
     if (playlistVideos[index]) {
-        const videoId = playlistVideos[index].snippet.resourceId?.videoId;
-        if (videoId) {
-            player.loadVideoById(videoId);
-            currentTrackIndex = index;
-            loadVideoInfo(playlistVideos[index]);
-        }
+        player.loadVideoById(playlistVideos[index].videoId);
+        currentTrackIndex = index;
+        updateVideoInfo(playlistVideos[index]);
+        
+        const playBtn = document.getElementById('playPauseBtn');
+        gsap.to(playBtn, {
+            motionPath: {
+                path: [
+                    {x: 0, y: 0},
+                    {x: 10, y: -10},
+                    {x: 0, y: 0}
+                ],
+                curviness: 1.5
+            },
+            duration: 0.5,
+            ease: "power1.inOut"
+        });
     }
 }
 
-// Load video info without playing
-function loadVideoInfo(video) {
-    const title = video.snippet.title;
-    const channel = video.snippet.channelTitle;
-    const thumbnail = video.snippet.thumbnails?.high?.url || 
-                     video.snippet.thumbnails?.medium?.url || 
-                     video.snippet.thumbnails?.default?.url ||
-                     'https://via.placeholder.com/200';
-    
-    document.getElementById('trackTitle').textContent = title;
-    document.getElementById('artistName').textContent = channel;
-    
-    const albumImage = document.getElementById('albumImage');
-    albumImage.src = thumbnail;
+function updateVideoInfo(video) {
+    document.getElementById('videoTitle').textContent = video.title;
+    document.getElementById('videoChannel').textContent = video.channelTitle;
 }
 
-// Update active track in playlist
-function updateActiveTrack(index) {
+function updateActiveItem(index) {
     document.querySelectorAll('.playlist-item').forEach((item, i) => {
         if (i === index) {
             item.classList.add('active');
+            gsap.to(item, {
+                scale: 1.05,
+                duration: 0.3,
+                yoyo: true,
+                repeat: 1,
+                ease: 'power2.inOut'
+            });
         } else {
             item.classList.remove('active');
         }
     });
 }
 
-// Player Controls
+function showFallbackMessage() {
+    const playlistGrid = document.getElementById('playlistGrid');
+    playlistGrid.innerHTML = `
+        <div class="loading-state" style="grid-column: 1/-1;">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <p>Unable to load playlist</p>
+            <p style="font-size: 0.9rem; margin-top: 1rem;">Make sure the server is running</p>
+        </div>
+    `;
+}
+
 document.getElementById('playPauseBtn').addEventListener('click', (e) => {
     e.preventDefault();
     if (player && player.getPlayerState) {
@@ -252,20 +241,19 @@ document.getElementById('nextBtn').addEventListener('click', (e) => {
 function playPrevious() {
     if (currentTrackIndex > 0) {
         currentTrackIndex--;
-        playVideoFromPlaylist(currentTrackIndex);
-        updateActiveTrack(currentTrackIndex);
+        playVideo(currentTrackIndex);
+        updateActiveItem(currentTrackIndex);
     }
 }
 
 function playNext() {
     if (currentTrackIndex < playlistVideos.length - 1) {
         currentTrackIndex++;
-        playVideoFromPlaylist(currentTrackIndex);
-        updateActiveTrack(currentTrackIndex);
+        playVideo(currentTrackIndex);
+        updateActiveItem(currentTrackIndex);
     }
 }
 
-// Progress bar click
 document.getElementById('progressBar').addEventListener('click', (e) => {
     if (player && player.getDuration) {
         const progressBar = e.currentTarget;
@@ -278,7 +266,6 @@ document.getElementById('progressBar').addEventListener('click', (e) => {
     }
 });
 
-// Update progress
 function updateProgress() {
     if (player && player.getCurrentTime && player.getDuration) {
         try {
@@ -293,12 +280,11 @@ function updateProgress() {
                 document.getElementById('duration').textContent = formatTime(duration);
             }
         } catch (error) {
-            // Player not ready yet
+
         }
     }
 }
 
-// Timer Functions
 function initializeTimer() {
     const setTimeBtn = document.getElementById('setTimeBtn');
     const modal = document.getElementById('timerModal');
@@ -331,6 +317,19 @@ function initializeTimer() {
         startTimer();
         
         modal.classList.remove('active');
+        
+        const timerDisplay = document.querySelector('.timer-display');
+        gsap.to(timerDisplay, {
+            motionPath: {
+                path: [
+                    {x: 0, y: 0},
+                    {x: 0, y: -20},
+                    {x: 0, y: 0}
+                ]
+            },
+            duration: 0.6,
+            ease: "bounce.out"
+        });
     });
 
     modal.addEventListener('click', (e) => {
@@ -370,18 +369,32 @@ function updateTimerDisplay() {
 }
 
 function timerComplete() {
-    gsap.to('.timer-display', {
-        scale: 1.1,
-        duration: 0.3,
-        yoyo: true,
-        repeat: 3,
-        ease: 'power2.inOut'
+    const timerDisplay = document.querySelector('.timer-display');
+    
+    // Create circular motion path for completion animation
+    gsap.to(timerDisplay, {
+        motionPath: {
+            path: [
+                {x: 0, y: 0},
+                {x: 30, y: -20},
+                {x: 0, y: -40},
+                {x: -30, y: -20},
+                {x: 0, y: 0}
+            ],
+            curviness: 1.5
+        },
+        duration: 1,
+        ease: "power2.inOut",
+        repeat: 2
     });
     
     if (player) {
         player.pauseVideo();
     }
-    alert('Prayer time complete!');
+    
+    setTimeout(() => {
+        alert('Prayer time complete!');
+    }, 2000);
 }
 
 // Utility Functions
@@ -391,8 +404,9 @@ function formatTime(seconds) {
     return `${mins}:${String(secs).padStart(2, '0')}`;
 }
 
-// GSAP Animations
+// GSAP Animations with Motion Paths
 function initializeAnimations() {
+    // Title animation with motion path
     gsap.from('.prayer-title', {
         duration: 1,
         y: -50,
@@ -408,6 +422,7 @@ function initializeAnimations() {
         delay: 0.2
     });
 
+    // Timer animation with floating effect
     gsap.from('.timer-section', {
         duration: 1,
         scale: 0.8,
@@ -415,8 +430,18 @@ function initializeAnimations() {
         ease: 'back.out(1.7)',
         delay: 0.4
     });
+    
+    // Continuous floating animation for timer
+    gsap.to('.timer-display', {
+        y: -10,
+        duration: 2,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut'
+    });
 
-    gsap.from('.player-card', {
+    // Video player animation
+    gsap.from('.video-player-section', {
         duration: 1,
         y: 50,
         opacity: 0,
@@ -424,11 +449,24 @@ function initializeAnimations() {
         delay: 0.6
     });
 
-    gsap.from('.playlist', {
+    // Playlist section animation
+    gsap.from('.playlist-section', {
         duration: 1,
         y: 50,
         opacity: 0,
         ease: 'power3.out',
         delay: 0.8
+    });
+    
+    // Control buttons circular motion on hover
+    const controlBtns = document.querySelectorAll('.control-btn-simple');
+    controlBtns.forEach(btn => {
+        btn.addEventListener('mouseenter', () => {
+            gsap.to(btn, {
+                rotation: 360,
+                duration: 0.6,
+                ease: 'power2.out'
+            });
+        });
     });
 }

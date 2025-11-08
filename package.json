@@ -1,26 +1,24 @@
 {
-  "name": "diga3009a",
+  "name": "selah-server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Backend server for SELAH worship app",
+  "type": "module",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "node --watch server.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/therealthori/DIGA3009.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/therealthori/DIGA3009/issues"
-  },
-  "homepage": "https://github.com/therealthori/DIGA3009#readme",
+  "keywords": [
+    "worship",
+    "devotional",
+    "youtube",
+    "api"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^5.1.0",
+    "express": "^4.18.2",
     "node-fetch": "^3.3.2"
   }
 }
