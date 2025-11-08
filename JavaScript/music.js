@@ -2,8 +2,6 @@ const API_BASE_URL = 'http://localhost:3000/api';
 
 const DEFAULT_PLAYLIST_ID = 'PLf-D8i92I2StkrJGNc-C3LI3NNoNbiNHY';
 
-http://localhost:3000/api/youtube/playlist/PLf-D8i92I2StkrJGNc-C3LI3NNoNbiNHY/
-
 let timerInterval = null;
 let remainingTime = 0;
 let isTimerRunning = false;
