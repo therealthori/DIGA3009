@@ -118,6 +118,7 @@ body {
     transform: translateY(50px);
 }
 
+/* Updated .card-image styling */
 .card-image {
     width: 150px;
     height: 150px;
@@ -128,6 +129,34 @@ body {
     align-items: center;
     justify-content: center;
     position: relative;
+    overflow: hidden;
+}
+
+/* Style for images inside card-image */
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* Optional: Add a subtle overlay to maintain the aesthetic */
+.card-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(212, 165, 116, 0.1);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Ensure images are behind the overlay */
+.card-image img {
+    position: relative;
+    z-index: 0;
 }
 
 .prayer-icon {
@@ -1342,7 +1371,7 @@ body {
 
 /* Main Content */
 .about-main {
-    background-color: #f5e6d3;
+    background-color: #F5DCAF;
     min-height: 100vh;
     padding-top: 80px;
 }
@@ -1428,7 +1457,7 @@ body {
 }
 
 .creator-card {
-    background: linear-gradient(135deg, #8b6914 0%, #a67c1a 100%);
+    background: linear-gradient(135deg, #8E5400 0%, #a67c1a 100%);
     border-radius: 12px;
     padding: 3rem;
     color: #fff;
@@ -1445,10 +1474,15 @@ body {
     align-items: center;
     justify-content: center;
     border: 4px solid rgba(255, 255, 255, 0.5);
+    overflow: hidden;
+    position: relative;
 }
 
-.creator-image svg {
-    opacity: 0.6;
+.creator-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
 }
 
 .creator-info {
@@ -1519,163 +1553,6 @@ body {
 }
 
 .social-link:hover {
-    background-color: rgba(255, 255, 255, 0.3);
-    transform: translateY(-3px);
-}
-
-/* Features Section */
-.features-section {
-    margin: 4rem 0;
-}
-
-.features-section h2 {
-    text-align: center;
-    font-size: 2.5rem;
-    color: #1a1a1a;
-    margin-bottom: 3rem;
-}
-
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
-}
-
-.feature-card {
-    background-color: white;
-    padding: 2rem;
-    border-radius: 8px;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s;
-}
-
-.feature-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-}
-
-.feature-icon {
-    color: #d4a574;
-    margin-bottom: 1rem;
-}
-
-.feature-card h3 {
-    font-size: 1.5rem;
-    color: #1a1a1a;
-    margin-bottom: 0.5rem;
-}
-
-.feature-card p {
-    color: #666;
-    line-height: 1.6;
-}
-
-/* Technology Section */
-.tech-section {
-    margin: 4rem 0;
-    padding: 3rem;
-    background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.tech-section h2 {
-    text-align: center;
-    font-size: 2.5rem;
-    color: #1a1a1a;
-    margin-bottom: 1rem;
-}
-
-.tech-intro {
-    text-align: center;
-    font-size: 1.1rem;
-    color: #666;
-    margin-bottom: 2rem;
-}
-
-.tech-stack {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-}
-
-.tech-item {
-    padding: 1.5rem;
-    background-color: #f9f9f9;
-    border-left: 4px solid #d4a574;
-    border-radius: 4px;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.tech-name {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #1a1a1a;
-}
-
-.tech-desc {
-    font-size: 0.95rem;
-    color: #666;
-}
-
-/* Call to Action Section */
-.cta-section {
-    margin: 4rem 0 2rem;
-    padding: 3rem;
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-    border-radius: 12px;
-    text-align: center;
-    color: white;
-}
-
-.cta-content h2 {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-}
-
-.cta-content p {
-    font-size: 1.2rem;
-    margin-bottom: 2rem;
-    opacity: 0.95;
-}
-
-.cta-buttons {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.cta-btn {
-    padding: 1rem 2rem;
-    font-size: 1.1rem;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.3s;
-    display: inline-block;
-}
-
-.cta-btn.primary {
-    background-color: white;
-    color: #1e3a8a;
-}
-
-.cta-btn.primary:hover {
-    background-color: #f0f0f0;
-    transform: translateY(-3px);
-}
-
-.cta-btn.secondary {
-    background-color: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 2px solid white;
-}
-
-.cta-btn.secondary:hover {
     background-color: rgba(255, 255, 255, 0.3);
     transform: translateY(-3px);
 }
