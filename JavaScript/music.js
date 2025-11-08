@@ -1,29 +1,41 @@
-// YouTube API Key - Replace with your actual key or leave empty for fallback
-const YOUTUBE_API_KEY = 'AIzaSyDI_6PB8r-FcawFVtQKYk0lt-Nch6Hbutg';
+// YouTube API Key
+const YOUTUBE_API_KEY = 'AIzaSyCPmdtc5AP2fxAexJzs8Loon9RN2YJ-OeI';
+
+// Default Playlist ID
 const DEFAULT_PLAYLIST_ID = 'PLmGouTBbived7Cy0F795kR2c_GEfa-Z-T';
 
-// Curated fallback playlist (works without API)
-const FALLBACK_PLAYLIST = [
-    { id: 'z5zDW7bsYrk', title: 'Way Maker - Leeland', channel: 'Leeland Official' },
-    { id: '0fM1gKzLRpc', title: 'Goodness of God', channel: 'Bethel Music' },
-    { id: 'WbN0nX61rIs', title: 'Great Are You Lord', channel: 'All Sons & Daughters' },
-    { id: 'O3o3DiMVdOI', title: 'What A Beautiful Name', channel: 'Hillsong Worship' },
-    { id: 'CqybaIesbuA', title: 'Oceans (Where Feet May Fail)', channel: 'Hillsong United' },
-    { id: 'Bl6hpgGWt64', title: 'Reckless Love', channel: 'Cory Asbury' },
-    { id: 'aOd93CHFUMQ', title: 'King of Kings', channel: 'Hillsong Worship' },
-    { id: '9RvB5Ym1YeU', title: 'Build My Life', channel: 'Passion' },
-    { id: 'D8e9j95dj6E', title: 'Graves Into Gardens', channel: 'Elevation Worship' },
-    { id: '8xTmEQ9Be94', title: 'The Blessing', channel: 'Kari Jobe' }
+// Fallback: Curated list of embeddable worship videos
+const EMBEDDABLE_VIDEOS = [
+    { id: 'v_4Z8CZqBf4', title: 'Graves Into Gardens - Elevation Worship', channel: 'Elevation Worship' },
+    { id: 'KH4NrUxcsYs', title: 'Goodness of God - Bethel Music', channel: 'Bethel Music' },
+    { id: 'PHdzYbN_J6U', title: 'Reckless Love - Cory Asbury', channel: 'Cory Asbury' },
+    { id: '0qXmxVySMzw', title: 'Way Maker - Sinach', channel: 'Sinach' },
+    { id: 'LfzpfqrPUDo', title: 'What A Beautiful Name - Hillsong Worship', channel: 'Hillsong Worship' },
+    { id: 'p0vz6ty_c1k', title: 'Great Are You Lord - All Sons & Daughters', channel: 'All Sons & Daughters' },
+    { id: 'GpYOfm5vwJ0', title: 'This Is Amazing Grace - Phil Wickham', channel: 'Phil Wickham' },
+    { id: '5JLfUAqCTvo', title: 'Oceans - Hillsong United', channel: 'Hillsong United' },
+    { id: 'C7vfvoIPKto', title: 'Build My Life - Passion', channel: 'Passion' },
+    { id: 'XtwIT8JjddM', title: 'King of Kings - Hillsong Worship', channel: 'Hillsong Worship' }
 ];
+
+// State variables
+let useFallbackVideos = false;
+let consecutiveErrors = 0;
+const MAX_CONSECUTIVE_ERRORS = 3;
 
 let timerInterval = null;
 let remainingTime = 0;
 let isTimerRunning = false;
+
 let player = null;
 let currentTrackIndex = 0;
-let playlistVideos = [];
+let searchResults = [];
+let filteredResults = [];
+let currentFilter = 'all';
 let isPlaying = false;
+let playlistVideos = [];
 
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     initializeYouTubePlayer();
     initializeTimer();
@@ -31,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeAnimations();
 });
 
+// Load YouTube IFrame API
 function initializeYouTubePlayer() {
     const tag = document.createElement('script');
     tag.src = 'https://www.youtube.com/iframe_api';
@@ -38,6 +51,7 @@ function initializeYouTubePlayer() {
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 }
 
+// YouTube API calls this function when ready
 window.onYouTubeIframeAPIReady = function() {
     player = new YT.Player('youtube-player', {
         height: '100%',
@@ -46,6 +60,8 @@ window.onYouTubeIframeAPIReady = function() {
             'autoplay': 0,
             'controls': 1,
             'rel': 0,
+            'enablejsapi': 1,
+            'origin': window.location.origin,
             'modestbranding': 1
         },
         events: {
@@ -56,22 +72,18 @@ window.onYouTubeIframeAPIReady = function() {
     });
 };
 
-function onPlayerError(event) {
-    console.error('YouTube error:', event.data);
-    showToast('Video unavailable. Trying next...');
-    setTimeout(() => playNext(), 1000);
-}
-
 function onPlayerReady(event) {
-    console.log('Player ready');
+    console.log('YouTube player ready');
     loadDefaultPlaylist();
+    
+    // Start progress updater
     setInterval(updateProgress, 1000);
-    enablePlayerControls();
 }
 
 function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
         isPlaying = true;
+        consecutiveErrors = 0; // Reset error counter on successful play
         document.getElementById('playIcon').style.display = 'none';
         document.getElementById('pauseIcon').style.display = 'block';
     } else if (event.data === YT.PlayerState.PAUSED) {
@@ -83,128 +95,229 @@ function onPlayerStateChange(event) {
     }
 }
 
-async function loadDefaultPlaylist() {
-    const loadingSpinner = document.getElementById('loadingSpinner');
-    loadingSpinner.style.display = 'block';
+function onPlayerError(event) {
+    console.error('YouTube player error:', event.data);
+    const errorMessages = {
+        2: 'Invalid video ID',
+        5: 'HTML5 player error',
+        100: 'Video not found or private',
+        101: 'Video not allowed to be played in embedded players',
+        150: 'Video not allowed to be played in embedded players'
+    };
+    const message = errorMessages[event.data] || 'Unknown error';
     
-    try {
-        if (YOUTUBE_API_KEY && YOUTUBE_API_KEY.length > 20) {
-            const response = await fetch(
-                `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${DEFAULT_PLAYLIST_ID}&maxResults=50&key=${YOUTUBE_API_KEY}`
-            );
-            
-            if (response.ok) {
-                const data = await response.json();
-                playlistVideos = data.items.map(item => ({
-                    id: item.snippet.resourceId.videoId,
-                    title: item.snippet.title,
-                    channel: item.snippet.channelTitle
-                }));
-            } else {
-                throw new Error('API failed');
-            }
+    consecutiveErrors++;
+    
+    // Auto-skip to next video if current one fails
+    if (event.data === 101 || event.data === 150 || event.data === 100) {
+        console.log(`Video unavailable (error ${event.data}), trying next... (${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS} errors)`);
+        
+        // If too many consecutive errors and not using fallback yet, switch to fallback
+        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS && !useFallbackVideos) {
+            console.log('Too many errors, switching to fallback embeddable videos');
+            loadFallbackVideos();
+            consecutiveErrors = 0;
         } else {
-            throw new Error('No API key');
+            setTimeout(() => {
+                playNext();
+            }, 1000);
         }
-    } catch (error) {
-        console.log('Using fallback playlist');
-        playlistVideos = FALLBACK_PLAYLIST;
+    } else {
+        showError(`Unable to play video: ${message}`);
     }
+}
+
+// Load default playlist
+async function loadDefaultPlaylist() {
+    try {
+        const response = await fetch(
+            `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,status&playlistId=${DEFAULT_PLAYLIST_ID}&maxResults=50&key=${YOUTUBE_API_KEY}`
+        );
+        
+        if (!response.ok) {
+            throw new Error('Failed to load playlist');
+        }
+        
+        const data = await response.json();
+        
+        // Filter out private/deleted videos
+        playlistVideos = (data.items || []).filter(item => {
+            const isPublic = item.status?.privacyStatus === 'public';
+            const hasVideoId = item.snippet.resourceId?.videoId;
+            return isPublic && hasVideoId;
+        });
+        
+        if (playlistVideos.length === 0) {
+            console.log('No videos in playlist, using fallback videos');
+            loadFallbackVideos();
+            return;
+        }
+        
+        searchResults = playlistVideos;
+        filteredResults = playlistVideos;
+        
+        displayPlaylistTracks(playlistVideos);
+        
+        if (playlistVideos.length > 0) {
+            loadVideoInfo(playlistVideos[0]);
+            player.cueVideoById(playlistVideos[0].snippet.resourceId.videoId);
+        }
+        
+        document.getElementById('playlistTitle').textContent = 'Gospel Music Playlist';
+        document.getElementById('resultsInfo').style.display = 'block';
+        document.getElementById('resultsText').textContent = `${playlistVideos.length} videos loaded`;
+        
+        enablePlayerControls();
+        
+    } catch (error) {
+        console.error('Error loading playlist:', error);
+        console.log('Using fallback videos instead');
+        loadFallbackVideos();
+    }
+}
+
+// Load fallback embeddable videos
+function loadFallbackVideos() {
+    useFallbackVideos = true;
+    
+    playlistVideos = EMBEDDABLE_VIDEOS.map(video => ({
+        snippet: {
+            title: video.title,
+            channelTitle: video.channel,
+            resourceId: {
+                videoId: video.id
+            },
+            thumbnails: {
+                default: { url: `https://img.youtube.com/vi/${video.id}/default.jpg` },
+                medium: { url: `https://img.youtube.com/vi/${video.id}/mqdefault.jpg` },
+                high: { url: `https://img.youtube.com/vi/${video.id}/hqdefault.jpg` }
+            }
+        }
+    }));
+    
+    searchResults = playlistVideos;
+    filteredResults = playlistVideos;
     
     displayPlaylistTracks(playlistVideos);
     
     if (playlistVideos.length > 0) {
-        player.cueVideoById(playlistVideos[0].id);
         loadVideoInfo(playlistVideos[0]);
+        player.cueVideoById(playlistVideos[0].snippet.resourceId.videoId);
     }
     
-    document.getElementById('playlistTitle').textContent = 'Gospel Worship Playlist';
+    document.getElementById('playlistTitle').textContent = 'Worship Music (Curated)';
     document.getElementById('resultsInfo').style.display = 'block';
-    document.getElementById('resultsText').textContent = `${playlistVideos.length} videos loaded`;
+    document.getElementById('resultsText').textContent = `${playlistVideos.length} embeddable videos`;
     
-    loadingSpinner.style.display = 'none';
+    enablePlayerControls();
 }
 
+// Initialize Search
 function initializeSearch() {
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
     const clearBtn = document.getElementById('clearBtn');
+    const filterBtns = document.querySelectorAll('.filter-btn');
 
     searchBtn.addEventListener('click', () => {
-        performLocalSearch(searchInput.value.trim());
+        const query = searchInput.value.trim();
+        if (query) performSearch(query);
     });
 
     searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') performLocalSearch(searchInput.value.trim());
+        if (e.key === 'Enter') {
+            const query = searchInput.value.trim();
+            if (query) performSearch(query);
+        }
     });
 
     searchInput.addEventListener('input', (e) => {
-        const value = e.target.value;
-        clearBtn.style.display = value.length > 0 ? 'flex' : 'none';
-        
-        if (value.length === 0) {
-            displayPlaylistTracks(playlistVideos);
-            document.getElementById('resultsText').textContent = `${playlistVideos.length} videos`;
-        }
+        clearBtn.style.display = e.target.value.length > 0 ? 'flex' : 'none';
     });
 
     clearBtn.addEventListener('click', () => {
         searchInput.value = '';
         clearBtn.style.display = 'none';
-        displayPlaylistTracks(playlistVideos);
-        document.getElementById('resultsText').textContent = `${playlistVideos.length} videos`;
+        searchInput.focus();
+        clearResults();
+    });
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = btn.dataset.filter;
+            applyFilter();
+            displaySearchResults();
+            updateResultsInfo();
+        });
     });
 }
 
-function performLocalSearch(query) {
-    if (!query) {
-        displayPlaylistTracks(playlistVideos);
-        return;
+// Perform YouTube Search
+async function performSearch(query) {
+    const searchBtn = document.getElementById('searchBtn');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    
+    searchBtn.disabled = true;
+    loadingSpinner.style.display = 'block';
+
+    try {
+        let searchType = 'video,playlist,channel';
+        if (currentFilter !== 'all') searchType = currentFilter;
+        
+        const response = await fetch(
+            `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=${searchType}&maxResults=20&key=${YOUTUBE_API_KEY}`
+        );
+
+        if (!response.ok) throw new Error(`Search failed: ${response.status}`);
+
+        const data = await response.json();
+        searchResults = data.items || [];
+        
+        applyFilter();
+        displaySearchResults();
+        updateResultsInfo();
+
+    } catch (error) {
+        console.error('Search error:', error);
+        showError(`Search failed: ${error.message}`);
+    } finally {
+        searchBtn.disabled = false;
+        loadingSpinner.style.display = 'none';
     }
+}
 
-    const filtered = playlistVideos.filter(video => {
-        const title = video.title.toLowerCase();
-        const channel = video.channel.toLowerCase();
-        const q = query.toLowerCase();
-        return title.includes(q) || channel.includes(q);
-    });
-
-    displayPlaylistTracks(filtered);
-    document.getElementById('resultsText').textContent = 
-        filtered.length > 0 
-            ? `Found ${filtered.length} of ${playlistVideos.length} videos`
-            : `No videos found for "${query}"`;
+function applyFilter() {
+    if (currentFilter === 'all') {
+        filteredResults = searchResults;
+    } else {
+        filteredResults = searchResults.filter(item => {
+            const kind = item.id?.kind || '';
+            return kind === `youtube#${currentFilter}`;
+        });
+    }
 }
 
 function displayPlaylistTracks(videos) {
     const playlistItems = document.getElementById('playlistItems');
     playlistItems.innerHTML = '';
 
-    if (videos.length === 0) {
-        playlistItems.innerHTML = `
-            <div class="empty-state">
-                <p>No videos found</p>
-            </div>
-        `;
-        return;
-    }
-
-    videos.forEach((video, displayIndex) => {
+    videos.forEach((video, index) => {
         const item = document.createElement('div');
         item.className = 'playlist-item';
-        
-        const originalIndex = playlistVideos.indexOf(video);
-        if (originalIndex === currentTrackIndex) item.classList.add('active');
+        if (index === 0) item.classList.add('active');
         
         item.innerHTML = `
             <div class="playlist-item-info">
-                <h4>${escapeHtml(video.title)}</h4>
-                <p>${escapeHtml(video.channel)}</p>
+                <h4>${video.snippet.title}</h4>
+                <p>${video.snippet.channelTitle}</p>
             </div>
         `;
         
         item.addEventListener('click', () => {
-            playVideoFromPlaylist(originalIndex);
+            playVideoFromPlaylist(index);
+            updateActiveTrack(index);
         });
         
         playlistItems.appendChild(item);
@@ -212,10 +325,10 @@ function displayPlaylistTracks(videos) {
 
     if (typeof gsap !== 'undefined') {
         gsap.from('.playlist-item', {
-            duration: 0.3,
+            duration: 0.5,
+            y: 20,
             opacity: 0,
-            y: 10,
-            stagger: 0.02,
+            stagger: 0.05,
             ease: 'power2.out'
         });
     }
@@ -223,28 +336,167 @@ function displayPlaylistTracks(videos) {
 
 function playVideoFromPlaylist(index) {
     if (playlistVideos[index]) {
-        player.loadVideoById(playlistVideos[index].id);
-        currentTrackIndex = index;
-        loadVideoInfo(playlistVideos[index]);
-        updateActiveTrack(index);
+        const videoId = playlistVideos[index].snippet.resourceId?.videoId;
+        if (videoId) {
+            console.log(`Playing video ${index + 1}/${playlistVideos.length}: ${videoId}`);
+            player.loadVideoById(videoId);
+            currentTrackIndex = index;
+            loadVideoInfo(playlistVideos[index]);
+        } else {
+            console.log('No video ID found, skipping...');
+            playNext();
+        }
     }
 }
 
 function loadVideoInfo(video) {
-    document.getElementById('trackTitle').textContent = video.title;
-    document.getElementById('artistName').textContent = video.channel;
+    const title = video.snippet.title;
+    const channel = video.snippet.channelTitle;
+    
+    document.getElementById('trackTitle').textContent = title;
+    document.getElementById('artistName').textContent = channel;
 }
 
 function updateActiveTrack(index) {
     document.querySelectorAll('.playlist-item').forEach((item, i) => {
-        const video = playlistVideos[i];
-        if (i === index && video) {
+        if (i === index) {
             item.classList.add('active');
-            item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         } else {
             item.classList.remove('active');
         }
     });
+}
+
+function displaySearchResults() {
+    const playlistItems = document.getElementById('playlistItems');
+    playlistItems.innerHTML = '';
+
+    if (filteredResults.length === 0) {
+        playlistItems.innerHTML = `
+            <div class="empty-state">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
+                    <path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/>
+                </svg>
+                <p>No results found. Try a different search term.</p>
+            </div>
+        `;
+        return;
+    }
+
+    filteredResults.forEach((item, index) => {
+        const resultItem = createResultItem(item, index);
+        playlistItems.appendChild(resultItem);
+    });
+
+    if (typeof gsap !== 'undefined') {
+        gsap.from('.playlist-item', {
+            duration: 0.5,
+            y: 20,
+            opacity: 0,
+            stagger: 0.1,
+            ease: 'power2.out'
+        });
+    }
+}
+
+function createResultItem(item, index) {
+    const div = document.createElement('div');
+    div.className = 'playlist-item';
+    
+    const kind = item.id?.kind || '';
+    let content = '';
+    
+    if (kind === 'youtube#video') {
+        content = `
+            <div class="playlist-item-info">
+                <h4>${item.snippet.title}</h4>
+                <p>${item.snippet.channelTitle}</p>
+            </div>
+            <span class="playlist-item-type">Video</span>
+        `;
+    } else if (kind === 'youtube#playlist') {
+        content = `
+            <div class="playlist-item-info">
+                <h4>${item.snippet.title}</h4>
+                <p>${item.snippet.channelTitle}</p>
+            </div>
+            <span class="playlist-item-type">Playlist</span>
+        `;
+    } else if (kind === 'youtube#channel') {
+        content = `
+            <div class="playlist-item-info">
+                <h4>${item.snippet.title}</h4>
+                <p>${item.snippet.description?.substring(0, 100) || 'Channel'}...</p>
+            </div>
+            <span class="playlist-item-type">Channel</span>
+        `;
+    }
+    
+    div.innerHTML = content;
+    div.addEventListener('click', () => handleResultClick(item, index));
+    
+    return div;
+}
+
+async function handleResultClick(item, index) {
+    const kind = item.id?.kind || '';
+    
+    if (kind === 'youtube#video') {
+        playVideo(item);
+    } else if (kind === 'youtube#playlist') {
+        await loadPlaylist(item);
+    } else if (kind === 'youtube#channel') {
+        window.open(`https://www.youtube.com/channel/${item.id.channelId}`, '_blank');
+    }
+    
+    document.querySelectorAll('.playlist-item').forEach((el, i) => {
+        if (i === index) {
+            el.classList.add('active');
+        } else {
+            el.classList.remove('active');
+        }
+    });
+}
+
+function playVideo(video) {
+    const videoId = video.id?.videoId;
+    if (videoId) {
+        player.loadVideoById(videoId);
+        loadVideoInfo(video);
+        enablePlayerControls();
+    }
+}
+
+async function loadPlaylist(playlist) {
+    try {
+        const playlistId = playlist.id?.playlistId;
+        if (!playlistId) return;
+        
+        const response = await fetch(
+            `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${YOUTUBE_API_KEY}`
+        );
+        
+        if (!response.ok) throw new Error('Failed to load playlist');
+        
+        const data = await response.json();
+        playlistVideos = data.items || [];
+        searchResults = playlistVideos;
+        filteredResults = playlistVideos;
+        
+        displayPlaylistTracks(playlistVideos);
+        
+        if (playlistVideos.length > 0) {
+            playVideoFromPlaylist(0);
+        }
+        
+        document.getElementById('playlistTitle').textContent = playlist.snippet.title;
+        document.getElementById('resultsInfo').style.display = 'block';
+        document.getElementById('resultsText').textContent = `${playlistVideos.length} videos loaded`;
+        
+    } catch (error) {
+        console.error('Error loading playlist:', error);
+        showError('Failed to load playlist');
+    }
 }
 
 function enablePlayerControls() {
@@ -253,6 +505,38 @@ function enablePlayerControls() {
     document.getElementById('nextBtn').disabled = false;
 }
 
+function updateResultsInfo() {
+    const resultsInfo = document.getElementById('resultsInfo');
+    const resultsText = document.getElementById('resultsText');
+    
+    if (searchResults.length > 0) {
+        resultsInfo.style.display = 'block';
+        resultsText.textContent = `Found ${filteredResults.length} results (${searchResults.length} total)`;
+    } else {
+        resultsInfo.style.display = 'none';
+    }
+}
+
+function clearResults() {
+    searchResults = [];
+    filteredResults = [];
+    loadDefaultPlaylist();
+    document.getElementById('resultsInfo').style.display = 'none';
+}
+
+function showError(message) {
+    const playlistItems = document.getElementById('playlistItems');
+    playlistItems.innerHTML = `
+        <div class="empty-state">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <p>${message}</p>
+        </div>
+    `;
+}
+
+// Player Controls
 document.getElementById('playPauseBtn').addEventListener('click', () => {
     if (player && player.getPlayerState) {
         const state = player.getPlayerState();
@@ -264,31 +548,35 @@ document.getElementById('playPauseBtn').addEventListener('click', () => {
     }
 });
 
-document.getElementById('prevBtn').addEventListener('click', () => {
-    if (currentTrackIndex > 0) {
-        playVideoFromPlaylist(currentTrackIndex - 1);
-    }
-});
+document.getElementById('prevBtn').addEventListener('click', () => playPrevious());
+document.getElementById('nextBtn').addEventListener('click', () => playNext());
 
-document.getElementById('nextBtn').addEventListener('click', () => {
-    playNext();
-});
+function playPrevious() {
+    if (currentTrackIndex > 0) {
+        currentTrackIndex--;
+        playVideoFromPlaylist(currentTrackIndex);
+        updateActiveTrack(currentTrackIndex);
+    }
+}
 
 function playNext() {
     if (currentTrackIndex < playlistVideos.length - 1) {
-        playVideoFromPlaylist(currentTrackIndex + 1);
+        currentTrackIndex++;
+        playVideoFromPlaylist(currentTrackIndex);
+        updateActiveTrack(currentTrackIndex);
     } else {
-        playVideoFromPlaylist(0);
+        console.log('Reached end of playlist');
     }
 }
 
 document.getElementById('progressBar').addEventListener('click', (e) => {
     if (player && player.getDuration) {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const width = e.currentTarget.offsetWidth;
+        const progressBar = e.currentTarget;
+        const clickX = e.offsetX;
+        const width = progressBar.offsetWidth;
         const percentage = clickX / width;
         const seekTime = player.getDuration() * percentage;
+        
         player.seekTo(seekTime, true);
     }
 });
@@ -296,19 +584,23 @@ document.getElementById('progressBar').addEventListener('click', (e) => {
 function updateProgress() {
     if (player && player.getCurrentTime && player.getDuration) {
         try {
-            const current = player.getCurrentTime();
+            const currentTime = player.getCurrentTime();
             const duration = player.getDuration();
             
             if (duration > 0) {
-                const percentage = (current / duration) * 100;
+                const percentage = (currentTime / duration) * 100;
                 document.getElementById('progressFill').style.width = `${percentage}%`;
-                document.getElementById('currentTime').textContent = formatTime(current);
+                
+                document.getElementById('currentTime').textContent = formatTime(currentTime);
                 document.getElementById('duration').textContent = formatTime(duration);
             }
-        } catch (e) {}
+        } catch (error) {
+            // Player not ready yet
+        }
     }
 }
 
+// Timer Functions
 function initializeTimer() {
     const setTimeBtn = document.getElementById('setTimeBtn');
     const modal = document.getElementById('timerModal');
@@ -336,39 +628,46 @@ function initializeTimer() {
         const seconds = parseInt(document.getElementById('secondsInput').value) || 0;
         
         remainingTime = (minutes * 60) + seconds;
-        if (remainingTime > 0) {
-            updateTimerDisplay();
-            startTimer();
-        }
+        updateTimerDisplay();
+        startTimer();
+        
         modal.classList.remove('active');
     });
 
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.classList.remove('active');
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
     });
 }
 
 function startTimer() {
-    if (isTimerRunning) clearInterval(timerInterval);
+    if (isTimerRunning) {
+        clearInterval(timerInterval);
+    }
+
     isTimerRunning = true;
     
     timerInterval = setInterval(() => {
         remainingTime--;
+        
         if (remainingTime <= 0) {
             clearInterval(timerInterval);
             isTimerRunning = false;
             remainingTime = 0;
             timerComplete();
         }
+        
         updateTimerDisplay();
     }, 1000);
 }
 
 function updateTimerDisplay() {
-    const mins = Math.floor(remainingTime / 60);
-    const secs = remainingTime % 60;
-    document.getElementById('minutes').textContent = String(mins).padStart(2, '0');
-    document.getElementById('seconds').textContent = String(secs).padStart(2, '0');
+    const minutes = Math.floor(remainingTime / 60);
+    const seconds = remainingTime % 60;
+    
+    document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+    document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
 }
 
 function timerComplete() {
@@ -381,8 +680,11 @@ function timerComplete() {
             ease: 'power2.inOut'
         });
     }
-    if (player) player.pauseVideo();
-    showToast('Prayer time complete!');
+    
+    if (player) {
+        player.pauseVideo();
+    }
+    alert('Prayer time complete!');
 }
 
 function formatTime(seconds) {
@@ -391,23 +693,54 @@ function formatTime(seconds) {
     return `${mins}:${String(secs).padStart(2, '0')}`;
 }
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function showToast(message) {
-    alert(message);
-}
-
+// GSAP Animations
 function initializeAnimations() {
     if (typeof gsap === 'undefined') return;
     
-    gsap.from('.prayer-title', { duration: 1, y: -50, opacity: 0, ease: 'power3.out' });
-    gsap.from('.prayer-subtitle', { duration: 1, y: -30, opacity: 0, ease: 'power3.out', delay: 0.2 });
-    gsap.from('.search-section', { duration: 1, y: 30, opacity: 0, ease: 'power3.out', delay: 0.4 });
-    gsap.from('.timer-section', { duration: 1, scale: 0.8, opacity: 0, ease: 'back.out(1.7)', delay: 0.6 });
-    gsap.from('.player-card', { duration: 1, y: 50, opacity: 0, ease: 'power3.out', delay: 0.8 });
-    gsap.from('.playlist', { duration: 1, y: 50, opacity: 0, ease: 'power3.out', delay: 1 });
+    gsap.from('.prayer-title', {
+        duration: 1,
+        y: -50,
+        opacity: 0,
+        ease: 'power3.out'
+    });
+
+    gsap.from('.prayer-subtitle', {
+        duration: 1,
+        y: -30,
+        opacity: 0,
+        ease: 'power3.out',
+        delay: 0.2
+    });
+
+    gsap.from('.search-section', {
+        duration: 1,
+        y: 30,
+        opacity: 0,
+        ease: 'power3.out',
+        delay: 0.4
+    });
+
+    gsap.from('.timer-section', {
+        duration: 1,
+        scale: 0.8,
+        opacity: 0,
+        ease: 'back.out(1.7)',
+        delay: 0.6
+    });
+
+    gsap.from('.player-card', {
+        duration: 1,
+        y: 50,
+        opacity: 0,
+        ease: 'power3.out',
+        delay: 0.8
+    });
+
+    gsap.from('.playlist', {
+        duration: 1,
+        y: 50,
+        opacity: 0,
+        ease: 'power3.out',
+        delay: 1
+    });
 }

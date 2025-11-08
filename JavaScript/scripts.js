@@ -3,15 +3,14 @@ gsap.registerPlugin(ScrollTrigger);
 
 // Hero animations on page load
 window.addEventListener('DOMContentLoaded', () => {
-    // Animate cross icon
-    gsap.from('.cross-icon', {
+    // Animate cross image
+    gsap.from('.cross-image', {
         duration: 1,
         scale: 0,
         rotation: 180,
         ease: 'back.out(1.7)',
         delay: 0.2
     });
-
     // Animate hero title
     gsap.from('.hero-title', {
         duration: 1,

@@ -23,7 +23,6 @@
         </div>
     </nav>
 
-    <!-- Prayer Page Content -->
     <main class="prayer-main">
         <div class="prayer-container">
             <!-- Header -->
@@ -43,7 +42,7 @@
                             type="text" 
                             id="searchInput" 
                             class="search-input" 
-                            placeholder="Search for worship music, artists, or playlists..."
+                            placeholder="Search for worship music..."
                         >
                         <button type="button" class="clear-btn" id="clearBtn" style="display: none;">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -78,24 +77,24 @@
 
             <!-- Music Player Section -->
             <section class="music-player">
-                <div class="player-card" style="grid-template-columns: 1fr;">
+                <div class="player-card">
                     <!-- YouTube Video Player (visible) -->
-                    <div class="video-player-container" style="width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 1.5rem;">
-                        <div id="youtube-player"></div>
+                    <div style="width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; overflow: hidden;">
+                        <div id="youtube-player" style="width: 100%; height: 100%;"></div>
                     </div>
                     
                     <div class="track-info">
                         <h2 class="track-title" id="trackTitle">Worship Music</h2>
-                        <p class="artist-name" id="artistName">Click play to begin worship</p>
+                        <p class="artist-name" id="artistName">Loading playlist...</p>
                         
                         <!-- Player Controls -->
                         <div class="player-controls">
-                            <button class="control-btn" id="prevBtn" disabled>
+                            <button type="button" class="control-btn" id="prevBtn" disabled>
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
                                 </svg>
                             </button>
-                            <button class="control-btn play-pause-btn" id="playPauseBtn" disabled>
+                            <button type="button" class="control-btn play-pause-btn" id="playPauseBtn" disabled>
                                 <svg id="playIcon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M8 5v14l11-7z"/>
                                 </svg>
@@ -103,7 +102,7 @@
                                     <path d="M6 4h4v16H6zm8 0h4v16h-4z"/>
                                 </svg>
                             </button>
-                            <button class="control-btn" id="nextBtn" disabled>
+                            <button type="button" class="control-btn" id="nextBtn" disabled>
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M16 18h2V6h-2zm-11-7l8.5-6v12z"/>
                                 </svg>
@@ -123,10 +122,10 @@
                     </div>
                 </div>
 
-                <!-- Search Results / Playlist -->
+                <!-- Playlist -->
                 <div class="playlist" id="playlistContainer">
                     <div class="playlist-header">
-                        <h3 id="playlistTitle">Gospel Music Playlist</h3>
+                        <h3 id="playlistTitle">Worship Playlist</h3>
                         <span class="loading-spinner" id="loadingSpinner" style="display: none;"></span>
                     </div>
                     <div class="playlist-items" id="playlistItems">
@@ -144,7 +143,7 @@
 
     <!-- Footer -->
     <footer class="footer">
-        <p>Footer</p>
+        <p>&copy; 2024 SELAH. Created with ❤️ for God's glory.</p>
     </footer>
 
     <!-- Timer Modal -->

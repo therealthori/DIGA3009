@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selah - Prayer Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .navbar {
+            background: #0047AB;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: opacity 0.3s;
+        }
+
+        .nav-links a:hover {
+            opacity: 0.8;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 72px;
+            color: #D4AF76;
+            margin-bottom: 10px;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #ccc;
+            margin-bottom: 50px;
+        }
+
+        .timer-display {
+            background: #D4AF76;
+            color: #1a1a1a;
+            font-size: 72px;
+            font-weight: bold;
+            padding: 30px 60px;
+            display: inline-block;
+            margin-bottom: 30px;
+            letter-spacing: 4px;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 4px 20px rgba(212, 175, 118, 0.3);
+        }
+
+        .set-time-btn {
+            background: #D4AF76;
+            color: #1a1a1a;
+            border: none;
+            padding: 12px 35px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(212, 175, 118, 0.2);
+        }
+
+        .set-time-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 118, 0.4);
+        }
+
+        .video-container {
+            margin: 50px auto;
+            max-width: 800px;
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        #player {
+            width: 100%;
+            height: 450px;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            background: #0047AB;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background: #003580;
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            background: #0047AB;
+            padding: 30px;
+            text-align: center;
+            margin-top: 100px;
+            color: #ccc;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #2a2a2a;
+            padding: 40px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .modal-content h2 {
+            color: #D4AF76;
+            margin-bottom: 20px;
+        }
+
+        .time-input {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .time-input input {
+            width: 80px;
+            padding: 10px;
+            font-size: 24px;
+            text-align: center;
+            background: #1a1a1a;
+            border: 2px solid #D4AF76;
+            color: #fff;
+            border-radius: 4px;
+        }
+
+        .time-input span {
+            font-size: 24px;
+            line-height: 44px;
+        }
+
+        .floating-particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: #D4AF76;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">SELAH</div>
+        <div class="nav-links">
+            <a href="#devotion">DEVOTION</a>
+            <a href="#prayer">PRAYER</a>
+            <a href="#journal">JOURNAL</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Prayer</h1>
+        <p class="subtitle">Spend time in his presence</p>
+
+        <div class="timer-display" id="timerDisplay">00:00</div>
+        <br>
+        <button class="set-time-btn" onclick="openModal()">Set Time</button>
+
+        <div class="video-container">
+            <div id="player"></div>
+            <div class="controls">
+                <button class="control-btn" onclick="playVideo()">▶ Play</button>
+                <button class="control-btn" onclick="pauseVideo()">⏸ Pause</button>
+                <button class="control-btn" onclick="nextVideo()">⏭ Next</button>
+                <button class="control-btn" onclick="previousVideo()">⏮ Previous</button>
+                <button class="control-btn" onclick="shufflePlaylist()">🔀 Shuffle</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Footer
+    </div>
+
+    <div class="modal" id="timeModal">
+        <div class="modal-content">
+            <h2>Set Prayer Time</h2>
+            <div class="time-input">
+                <input type="number" id="minutes" min="0" max="99" value="5" placeholder="MM">
+                <span>:</span>
+                <input type="number" id="seconds" min="0" max="59" value="0" placeholder="SS">
+            </div>
+            <button class="set-time-btn" onclick="startTimer()">Start</button>
+            <button class="control-btn" onclick="closeModal()" style="margin-left: 10px;">Cancel</button>
+        </div>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        let player;
+        let timerInterval;
+        let timeRemaining = 0;
+        let isTimerRunning = false;
+
+        // YouTube Player API
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '450',
+                width: '100%',
+                playerVars: {
+                    listType: 'playlist',
+                    list: 'PLDgXoS9ZJbC3suzSddNOq0C3uyIaYLfdq',
+                    autoplay: 0,
+                    loop: 1,
+                    enablejsapi: 1,
+                    origin: window.location.origin
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onError': onPlayerError
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            console.log('Player is ready');
+        }
+
+        function onPlayerError(event) {
+            console.log('Error code:', event.data);
+            if (event.data === 150 || event.data === 153 || event.data === 101) {
+                // These errors mean the video can't be embedded
+                showEmbedError();
+            }
+        }
+
+        function showEmbedError() {
+            const container = document.querySelector('.video-container');
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                background: #ff4444;
+                color: white;
+                padding: 20px;
+                border-radius: 4px;
+                margin-bottom: 15px;
+                text-align: center;
+            `;
+            errorDiv.innerHTML = `
+                <strong>⚠️ Embedding Restricted</strong><br>
+                This playlist cannot be embedded. <br>
+                <a href="https://www.youtube.com/playlist?list=PLDgXoS9ZJbC3suzSddNOq0C3uyIaYLfdq" 
+                   target="_blank" 
+                   style="color: white; text-decoration: underline;">
+                   Click here to open in YouTube
+                </a>
+            `;
+            container.insertBefore(errorDiv, container.firstChild);
+        }
+
+        function playVideo() {
+            if (player) player.playVideo();
+        }
+
+        function pauseVideo() {
+            if (player) player.pauseVideo();
+        }
+
+        function nextVideo() {
+            if (player) player.nextVideo();
+        }
+
+        function previousVideo() {
+            if (player) player.previousVideo();
+        }
+
+        function shufflePlaylist() {
+            if (player) player.setShuffle(true);
+        }
+
+        // Timer Functions
+        function openModal() {
+            document.getElementById('timeModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('timeModal').style.display = 'none';
+        }
+
+        function startTimer() {
+            const minutes = parseInt(document.getElementById('minutes').value) || 0;
+            const seconds = parseInt(document.getElementById('seconds').value) || 0;
+            
+            timeRemaining = (minutes * 60) + seconds;
+            
+            if (timeRemaining > 0) {
+                closeModal();
+                isTimerRunning = true;
+                
+                if (player && player.getPlayerState) {
+                    playVideo();
+                }
+                
+                clearInterval(timerInterval);
+                timerInterval = setInterval(updateTimer, 1000);
+                updateDisplay();
+            }
+        }
+
+        function updateTimer() {
+            if (timeRemaining > 0) {
+                timeRemaining--;
+                updateDisplay();
+            } else {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                if (player) pauseVideo();
+                alert('Prayer time complete! 🙏');
+            }
+        }
+
+        function updateDisplay() {
+            const mins = Math.floor(timeRemaining / 60);
+            const secs = timeRemaining % 60;
+            document.getElementById('timerDisplay').textContent = 
+                `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        // Animated particles with motion path
+        function createParticles() {
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'floating-particle';
+                    document.body.appendChild(particle);
+                    
+                    const startX = Math.random() * window.innerWidth;
+                    const startY = window.innerHeight + 20;
+                    
+                    particle.style.left = startX + 'px';
+                    particle.style.top = startY + 'px';
+                    
+                    animateParticle(particle);
+                }, i * 1000);
+            }
+        }
+
+        function animateParticle(particle) {
+            const duration = 8000 + Math.random() * 4000;
+            const amplitude = 100 + Math.random() * 100;
+            const startX = parseFloat(particle.style.left);
+            const startTime = Date.now();
+            
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = elapsed / duration;
+                
+                if (progress < 1) {
+                    const y = window.innerHeight - (progress * (window.innerHeight + 100));
+                    const x = startX + Math.sin(progress * Math.PI * 4) * amplitude;
+                    
+                    particle.style.top = y + 'px';
+                    particle.style.left = x + 'px';
+                    particle.style.opacity = 0.6 * (1 - progress);
+                    
+                    requestAnimationFrame(animate);
+                } else {
+                    particle.remove();
+                    // Create new particle
+                    setTimeout(() => {
+                        const newParticle = document.createElement('div');
+                        newParticle.className = 'floating-particle';
+                        document.body.appendChild(newParticle);
+                        newParticle.style.left = (Math.random() * window.innerWidth) + 'px';
+                        newParticle.style.top = (window.innerHeight + 20) + 'px';
+                        animateParticle(newParticle);
+                    }, Math.random() * 2000);
+                }
+            }
+            
+            animate();
+        }
+
+        // Initialize particles on load
+        window.addEventListener('load', createParticles);
+
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+    </script>
+</body>
+</html>
