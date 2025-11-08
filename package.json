@@ -14,7 +14,7 @@
     "youtube",
     "api"
   ],
-  "author": "Your Name",
+  "author": "Thoriso Shomang",
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",

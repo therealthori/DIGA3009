@@ -53,8 +53,6 @@ function onPlayerError(event) {
 
 function onPlayerReady(event) {
     console.log('YouTube player ready');
-    loadDefaultPlaylist();
-    
     setInterval(updateProgress, 1000);
 }
 
@@ -75,33 +73,35 @@ function onPlayerStateChange(event) {
 
 async function loadDefaultPlaylist() {
     try {
-        const response = await fetch(
-            `${API_BASE_URL}/playlist/${DEFAULT_PLAYLIST_ID}?maxResults=50`
-        );
+        const response = await fetch(`${API_BASE_URL}/youtube/playlist/${DEFAULT_PLAYLIST_ID}?maxResults=50`);
         
         if (!response.ok) {
-            throw new Error('Failed to load playlist from server');
+            throw new Error(`Failed to load playlist from server: ${response.status} ${response.statusText}`);
         }
-        
+
         const data = await response.json();
-        
+
         if (!data.items || data.items.length === 0) {
-            throw new Error('No videos in playlist');
+            throw new Error('No videos found in playlist');
         }
-        
+
+        // Save the playlist globally
         playlistVideos = data.items;
-        
+
+        // Display playlist in UI
         displayPlaylistGrid(playlistVideos);
-        
+
+        // Update video count
         document.getElementById('videoCount').textContent = `${playlistVideos.length} videos`;
-        
-        if (playlistVideos.length > 0) {
+
+        // Cue the first video
+        if (playlistVideos.length > 0 && player) {
             player.cueVideoById(playlistVideos[0].videoId);
             updateVideoInfo(playlistVideos[0]);
         }
-        
+
     } catch (error) {
-        console.error('Error loading YouTube playlist:', error);
+        console.error('Error fetching playlist:', error);
         showFallbackMessage();
     }
 }

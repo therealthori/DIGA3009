@@ -44,6 +44,8 @@ app.get('/api/youtube/playlist/:id', async (req, res) => {
 
     res.json({ items });
   } catch (error) {
+      console.error("Error fetching playlist:", error);
+      res.status(500).json({ error: error.message });
     console.error("Server error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
